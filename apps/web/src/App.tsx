@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useTranslation } from 'react-i18next'
 
 type EvalResponse = {
   status: 'success' | 'error'
@@ -22,6 +21,7 @@ type EvalResponse = {
 }
 
 function App() {
+  const { i18n, t } = useTranslation()
   const [apiBaseUrl, setApiBaseUrl] = useState(
     import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000',
   )
@@ -57,16 +57,21 @@ function App() {
       const data = (await response.json()) as EvalResponse
 
       if (!response.ok || data.status !== 'success') {
-        setError(data.message ?? 'Request failed.')
+        setError(data.message ?? t('requestFailed'))
         return
       }
 
       setOutput(data.result?.output ?? '')
     } catch {
-      setError('Cannot connect to backend API.')
+      setError(t('cannotConnect'))
     } finally {
       setIsLoading(false)
     }
+  }
+
+  function switchLanguage(language: 'sk' | 'en') {
+    void i18n.changeLanguage(language)
+    localStorage.setItem('language', language)
   }
 
   return (
@@ -75,18 +80,36 @@ function App() {
         <div className="flex items-center justify-between rounded-xl border bg-white/80 p-4 shadow-sm backdrop-blur">
           <div>
             <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-              CAS Console
+              {t('title')}
             </h1>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={i18n.language === 'sk' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => switchLanguage('sk')}
+            >
+              SK
+            </Button>
+            <Button
+              type="button"
+              variant={i18n.language === 'en' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => switchLanguage('en')}
+            >
+              EN
+            </Button>
           </div>
         </div>
 
         <Card className="border-stone-300/70 shadow-md">
           <CardHeader>
-            <CardTitle>Connection</CardTitle>
+            <CardTitle>{t('connection')}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="grid gap-2 md:col-span-2">
-              <Label htmlFor="base-url">API Base URL</Label>
+              <Label htmlFor="base-url">{t('apiBaseUrl')}</Label>
               <Input
                 id="base-url"
                 value={apiBaseUrl}
@@ -95,7 +118,7 @@ function App() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="api-key">X-API-KEY</Label>
+              <Label htmlFor="api-key">{t('apiKey')}</Label>
               <Input
                 id="api-key"
                 value={apiKey}
@@ -104,7 +127,7 @@ function App() {
               />
             </div>
             <div className="grid gap-2 md:col-span-3">
-              <Label htmlFor="anon-token">X-ANON-TOKEN</Label>
+              <Label htmlFor="anon-token">{t('anonToken')}</Label>
               <Input
                 id="anon-token"
                 value={anonToken}
@@ -117,11 +140,11 @@ function App() {
 
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle>Command</CardTitle>
+            <CardTitle>{t('command')}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="command">Command</Label>
+              <Label htmlFor="command">{t('commandLabel')}</Label>
               <Textarea
                 id="command"
                 value={command}
@@ -133,7 +156,7 @@ function App() {
 
             <div className="flex flex-wrap gap-3">
               <Button onClick={runCommand} disabled={isLoading || !command.trim()}>
-                {isLoading ? 'Running...' : 'Run command'}
+                {isLoading ? t('running') : t('run')}
               </Button>
               <Button
                 type="button"
@@ -144,13 +167,13 @@ function App() {
                   setError('')
                 }}
               >
-                Clear
+                {t('clear')}
               </Button>
             </div>
 
             <div className="grid gap-2">
-              <Label>Output</Label>
-              <Textarea readOnly rows={4} value={output} placeholder="Result output..." />
+              <Label>{t('output')}</Label>
+              <Textarea readOnly rows={4} value={output} placeholder={t('resultPlaceholder')} />
             </div>
 
             {error ? (
