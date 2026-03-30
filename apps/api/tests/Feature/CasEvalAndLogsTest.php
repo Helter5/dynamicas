@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ApiLog;
+use App\Services\CasEvaluatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -77,5 +78,46 @@ class CasEvalAndLogsTest extends TestCase
         $this->assertStringContainsString('anon-export-1', $csvContent);
         $this->assertStringContainsString('/api/cas/eval', $csvContent);
         $this->assertStringContainsString('a+2', $csvContent);
+    }
+
+    public function test_cas_eval_uses_octave_driver_when_configured(): void
+    {
+        config([
+            'app.api_key' => 'test-api-key',
+            'cas.driver' => 'octave',
+        ]);
+
+        $serviceMock = $this->createMock(CasEvaluatorService::class);
+        $serviceMock
+            ->expects($this->once())
+            ->method('evaluate')
+            ->with('sqrt(4)')
+            ->willReturn([
+                'mock' => false,
+                'output' => '2',
+            ]);
+
+        $this->app->instance(CasEvaluatorService::class, $serviceMock);
+
+        $response = $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-octave-1')
+            ->postJson('/api/cas/eval', [
+                'command' => 'sqrt(4)',
+                'source' => 'form',
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('status', 'success')
+            ->assertJsonPath('result.mock', false)
+            ->assertJsonPath('result.output', '2');
+
+        $this->assertDatabaseHas('api_logs', [
+            'anon_token' => 'anon-octave-1',
+            'endpoint' => '/api/cas/eval',
+            'command' => 'sqrt(4)',
+            'status' => 'success',
+        ]);
     }
 }

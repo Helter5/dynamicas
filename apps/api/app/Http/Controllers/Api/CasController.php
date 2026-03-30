@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\ApiLog;
 use App\Http\Controllers\Controller;
+use App\Models\ApiLog;
+use App\Services\CasEvaluatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
 class CasController extends Controller
 {
+    public function __construct(
+        private readonly CasEvaluatorService $casEvaluatorService,
+    ) {
+    }
+
     public function eval(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -21,10 +27,8 @@ class CasController extends Controller
         $anonToken = $request->cookie('anon_token') ?: $request->header('X-ANON-TOKEN');
 
         try {
-            $result = [
-                'mock' => true,
-                'output' => "mock-result: {$command}",
-            ];
+            $result = $this->casEvaluatorService->evaluate($command);
+            $driver = (string) config('cas.driver', 'mock');
 
             ApiLog::create([
                 'anon_token' => $anonToken,
@@ -33,6 +37,7 @@ class CasController extends Controller
                 'status' => 'success',
                 'meta' => [
                     'source' => $validated['source'] ?? 'form',
+                    'driver' => $driver,
                 ],
             ]);
 
@@ -49,6 +54,7 @@ class CasController extends Controller
                 'error_message' => $exception->getMessage(),
                 'meta' => [
                     'source' => $validated['source'] ?? 'form',
+                    'driver' => (string) config('cas.driver', 'mock'),
                 ],
             ]);
 
