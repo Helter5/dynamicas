@@ -17,6 +17,7 @@ Stav projektu k 30. 3. 2026.
 - Na frontende je pridane tlacidlo na reset stavu.
 - Zakladne testy su doplnene a vacsina scenarov je pokryta.
 - Cooldown/throttle pre CAS requesty je hotovy (konfigurovatelny cez `CAS_COOLDOWN_MINUTES`).
+- Docker Compose setup je hotovy (API + web).
 
 ## Co este treba spravit
 
@@ -28,9 +29,17 @@ Stav projektu k 30. 3. 2026.
   - historia prikazov
   - lepsi feedback pri chybach/loadingu
 - Realne otestovanie Octave runnera na lokalnom prostredi.
-- Docker Compose na jednoduche lokalne spustenie celeho stacku.
 - Kratka produktova/technicka dokumentacia (OpenAPI alebo aspon jasne API notes).
 
 ## Najblizsi logicky krok
 
 - Command history vo web konzole
+
+## Spustenie cez Docker
+
+- V roote projektu spusti:
+  - `docker compose up --build`
+- API bude na `http://localhost:8000`
+- Web bude na `http://localhost:5173`
+- Zastavenie stacku:
+  - `docker compose down`
