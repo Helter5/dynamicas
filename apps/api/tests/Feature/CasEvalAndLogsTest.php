@@ -127,7 +127,7 @@ class CasEvalAndLogsTest extends TestCase
         config([
             'app.api_key' => 'test-api-key',
             'cas.driver' => 'octave',
-            'cas.cooldown_minutes' => 0,
+            'cas.cooldown_seconds' => 0,
         ]);
 
         $expectedScripts = ['a=1+1', "a=1+1\na+2"];
@@ -202,7 +202,7 @@ class CasEvalAndLogsTest extends TestCase
     {
         config([
             'app.api_key' => 'test-api-key',
-            'cas.cooldown_minutes' => 10,
+            'cas.cooldown_seconds' => 1,
         ]);
 
         $this
@@ -228,14 +228,14 @@ class CasEvalAndLogsTest extends TestCase
             ->assertJsonPath('status', 'error')
             ->assertJsonPath('message', 'CAS evaluation is on cooldown.')
             ->assertJsonPath('cooldown.enabled', true)
-            ->assertJsonPath('cooldown.total_minutes', 10);
+            ->assertJsonPath('cooldown.total_seconds', 1);
     }
 
     public function test_cas_eval_proceeds_after_cooldown_expires(): void
     {
         config([
             'app.api_key' => 'test-api-key',
-            'cas.cooldown_minutes' => 10,
+            'cas.cooldown_seconds' => 1,
         ]);
 
         CasUserState::create([

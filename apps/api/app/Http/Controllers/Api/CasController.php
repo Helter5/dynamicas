@@ -34,10 +34,10 @@ class CasController extends Controller
 
         // Check cooldown
         if ($state->last_eval_at !== null) {
-            $cooldownMinutes = (int) config('cas.cooldown_minutes', 10);
-            if ($cooldownMinutes > 0) {
+            $cooldownSeconds = (int) config('cas.cooldown_seconds', 10);
+            if ($cooldownSeconds > 0) {
                 $lastEvalTime = $state->last_eval_at;
-                $nextEvalTime = $lastEvalTime->addMinutes($cooldownMinutes);
+                $nextEvalTime = $lastEvalTime->addSeconds($cooldownSeconds);
                 $now = now();
 
                 if ($now->isBefore($nextEvalTime)) {
@@ -47,7 +47,7 @@ class CasController extends Controller
                         'message' => 'CAS evaluation is on cooldown.',
                         'cooldown' => [
                             'enabled' => true,
-                            'total_minutes' => $cooldownMinutes,
+                            'total_seconds' => $cooldownSeconds,
                             'seconds_remaining' => $secondsRemaining,
                             'next_eval_at' => $nextEvalTime->toIso8601String(),
                         ],
