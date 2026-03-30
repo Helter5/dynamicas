@@ -3,28 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\InvertedPendulumRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class SimulationController extends Controller
 {
-    public function invertedPendulum(Request $request): JsonResponse
+    public function invertedPendulum(InvertedPendulumRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'duration' => ['nullable', 'numeric', 'min:0.5', 'max:60'],
-            'dt' => ['nullable', 'numeric', 'min:0.001', 'max:0.2'],
-            'initial_theta' => ['nullable', 'numeric', 'min:-1.57', 'max:1.57'],
-            'initial_omega' => ['nullable', 'numeric', 'min:-20', 'max:20'],
-            'initial_x' => ['nullable', 'numeric', 'min:-10', 'max:10'],
-            'initial_v' => ['nullable', 'numeric', 'min:-20', 'max:20'],
-            'force' => ['nullable', 'numeric', 'min:-100', 'max:100'],
-            'cart_mass' => ['nullable', 'numeric', 'min:0.1', 'max:20'],
-            'pendulum_mass' => ['nullable', 'numeric', 'min:0.05', 'max:10'],
-            'pendulum_length' => ['nullable', 'numeric', 'min:0.1', 'max:5'],
-            'gravity' => ['nullable', 'numeric', 'min:1', 'max:20'],
-            'cart_damping' => ['nullable', 'numeric', 'min:0', 'max:5'],
-            'pendulum_damping' => ['nullable', 'numeric', 'min:0', 'max:5'],
-        ]);
+        $validated = $request->validated();
 
         $duration = (float) ($validated['duration'] ?? 10.0);
         $dt = (float) ($validated['dt'] ?? 0.02);
