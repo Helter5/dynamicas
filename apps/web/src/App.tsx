@@ -47,6 +47,7 @@ function CasConsolePage() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isResettingState, setIsResettingState] = useState(false)
 
   useEffect(() => {
     if (!SUPPORTED_LANGUAGES.includes(lang as Language)) {
@@ -62,6 +63,10 @@ function CasConsolePage() {
 
   const evalUrl = useMemo(() => {
     return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/eval`
+  }, [apiBaseUrl])
+
+  const resetStateUrl = useMemo(() => {
+    return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/state`
   }, [apiBaseUrl])
 
   async function runCommand() {
@@ -94,6 +99,34 @@ function CasConsolePage() {
       setError(t('cannotConnect'))
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function resetState() {
+    setIsResettingState(true)
+    setError('')
+
+    try {
+      const response = await fetch(resetStateUrl, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+          'X-ANON-TOKEN': anonToken,
+        },
+      })
+
+      if (!response.ok) {
+        setError(t('requestFailed'))
+        return
+      }
+
+      setOutput('')
+      setCommand('')
+    } catch {
+      setError(t('cannotConnect'))
+    } finally {
+      setIsResettingState(false)
     }
   }
 
@@ -209,6 +242,14 @@ function CasConsolePage() {
                 }}
               >
                 {t('clear')}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={resetState}
+                disabled={isResettingState}
+              >
+                {isResettingState ? t('resettingState') : t('resetState')}
               </Button>
             </div>
 
