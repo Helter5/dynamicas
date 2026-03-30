@@ -32,6 +32,30 @@ class CasController extends Controller
             ['script' => ''],
         );
 
+        // Check cooldown
+        if ($state->last_eval_at !== null) {
+            $cooldownMinutes = (int) config('cas.cooldown_minutes', 10);
+            if ($cooldownMinutes > 0) {
+                $lastEvalTime = $state->last_eval_at;
+                $nextEvalTime = $lastEvalTime->addMinutes($cooldownMinutes);
+                $now = now();
+
+                if ($now->isBefore($nextEvalTime)) {
+                    $secondsRemaining = (int) $nextEvalTime->diffInSeconds($now);
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'CAS evaluation is on cooldown.',
+                        'cooldown' => [
+                            'enabled' => true,
+                            'total_minutes' => $cooldownMinutes,
+                            'seconds_remaining' => $secondsRemaining,
+                            'next_eval_at' => $nextEvalTime->toIso8601String(),
+                        ],
+                    ], 429);
+                }
+            }
+        }
+
         $composedScript = $state->script === ''
             ? $command
             : $state->script."\n".$command;
@@ -42,6 +66,7 @@ class CasController extends Controller
 
             $state->update([
                 'script' => $composedScript,
+                            'last_eval_at' => now(),
             ]);
 
             ApiLog::create([

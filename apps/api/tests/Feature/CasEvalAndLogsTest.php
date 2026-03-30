@@ -127,6 +127,7 @@ class CasEvalAndLogsTest extends TestCase
         config([
             'app.api_key' => 'test-api-key',
             'cas.driver' => 'octave',
+            'cas.cooldown_minutes' => 0,
         ]);
 
         $expectedScripts = ['a=1+1', "a=1+1\na+2"];
@@ -194,6 +195,68 @@ class CasEvalAndLogsTest extends TestCase
 
         $this->assertDatabaseMissing('cas_user_states', [
             'anon_token' => 'anon-state-reset-1',
+        ]);
+    }
+
+    public function test_cas_eval_respects_cooldown(): void
+    {
+        config([
+            'app.api_key' => 'test-api-key',
+            'cas.cooldown_minutes' => 10,
+        ]);
+
+        $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-cooldown-1')
+            ->postJson('/api/cas/eval', [
+                'command' => 'a=1+1',
+                'source' => 'form',
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $response = $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-cooldown-1')
+            ->postJson('/api/cas/eval', [
+                'command' => 'b=2+2',
+                'source' => 'form',
+            ]);
+
+        $response
+            ->assertStatus(429)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'CAS evaluation is on cooldown.')
+            ->assertJsonPath('cooldown.enabled', true)
+            ->assertJsonPath('cooldown.total_minutes', 10);
+    }
+
+    public function test_cas_eval_proceeds_after_cooldown_expires(): void
+    {
+        config([
+            'app.api_key' => 'test-api-key',
+            'cas.cooldown_minutes' => 10,
+        ]);
+
+        CasUserState::create([
+            'anon_token' => 'anon-cooldown-2',
+            'script' => 'a=1+1',
+            'last_eval_at' => now()->subMinutes(11),
+        ]);
+
+        $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-cooldown-2')
+            ->postJson('/api/cas/eval', [
+                'command' => 'b=2+2',
+                'source' => 'form',
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('cas_user_states', [
+            'anon_token' => 'anon-cooldown-2',
+            'script' => "a=1+1\nb=2+2",
         ]);
     }
 }
