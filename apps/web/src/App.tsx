@@ -6,7 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
+import { ConnectionCard } from '@/components/console/ConnectionCard'
+import { useCommandHistory } from '@/hooks/useCommandHistory'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from 'react-i18next'
@@ -31,8 +33,6 @@ type EvalResponse = {
 type Language = 'sk' | 'en'
 
 const SUPPORTED_LANGUAGES: Language[] = ['sk', 'en']
-const COMMAND_HISTORY_KEY = 'cas_command_history'
-const MAX_HISTORY_ITEMS = 10
 
 function CasConsolePage() {
   const { i18n, t } = useTranslation()
@@ -50,22 +50,7 @@ function CasConsolePage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isResettingState, setIsResettingState] = useState(false)
-  const [commandHistory, setCommandHistory] = useState<string[]>(() => {
-    const stored = localStorage.getItem(COMMAND_HISTORY_KEY)
-
-    if (!stored) {
-      return []
-    }
-
-    try {
-      const parsed = JSON.parse(stored)
-      return Array.isArray(parsed)
-        ? parsed.filter((item): item is string => typeof item === 'string').slice(0, MAX_HISTORY_ITEMS)
-        : []
-    } catch {
-      return []
-    }
-  })
+  const { commandHistory, addToHistory, clearHistory } = useCommandHistory()
 
   useEffect(() => {
     if (!SUPPORTED_LANGUAGES.includes(lang as Language)) {
@@ -113,29 +98,12 @@ function CasConsolePage() {
       }
 
       setOutput(data.result?.output ?? '')
-
-      const normalizedCommand = command.trim()
-      if (normalizedCommand !== '') {
-        setCommandHistory((current) => {
-          const next = [
-            normalizedCommand,
-            ...current.filter((item) => item !== normalizedCommand),
-          ].slice(0, MAX_HISTORY_ITEMS)
-
-          localStorage.setItem(COMMAND_HISTORY_KEY, JSON.stringify(next))
-          return next
-        })
-      }
+      addToHistory(command)
     } catch {
       setError(t('cannotConnect'))
     } finally {
       setIsLoading(false)
     }
-  }
-
-  function clearHistory() {
-    setCommandHistory([])
-    localStorage.removeItem(COMMAND_HISTORY_KEY)
   }
 
   async function resetState() {
@@ -213,40 +181,15 @@ function CasConsolePage() {
           </div>
         </div>
 
-        <Card className="border-stone-300/70 shadow-md">
-          <CardHeader>
-            <CardTitle>{t('connection')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
-            <div className="grid gap-2 md:col-span-2">
-              <Label htmlFor="base-url">{t('apiBaseUrl')}</Label>
-              <Input
-                id="base-url"
-                value={apiBaseUrl}
-                onChange={(event) => setApiBaseUrl(event.target.value)}
-                placeholder="http://127.0.0.1:8000"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="api-key">{t('apiKey')}</Label>
-              <Input
-                id="api-key"
-                value={apiKey}
-                onChange={(event) => setApiKey(event.target.value)}
-                placeholder="local-smoke-key"
-              />
-            </div>
-            <div className="grid gap-2 md:col-span-3">
-              <Label htmlFor="anon-token">{t('anonToken')}</Label>
-              <Input
-                id="anon-token"
-                value={anonToken}
-                onChange={(event) => setAnonToken(event.target.value)}
-                placeholder="web-user-001"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <ConnectionCard
+          t={t}
+          apiBaseUrl={apiBaseUrl}
+          apiKey={apiKey}
+          anonToken={anonToken}
+          onApiBaseUrlChange={setApiBaseUrl}
+          onApiKeyChange={setApiKey}
+          onAnonTokenChange={setAnonToken}
+        />
 
         <Card className="shadow-md">
           <CardHeader>
@@ -300,40 +243,12 @@ function CasConsolePage() {
               </p>
             ) : null}
 
-            <div className="grid gap-2 rounded-md border border-stone-200 bg-stone-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <Label>{t('history')}</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearHistory}
-                  disabled={commandHistory.length === 0}
-                >
-                  {t('clearHistory')}
-                </Button>
-              </div>
-
-              {commandHistory.length === 0 ? (
-                <p className="text-sm text-stone-500">{t('noHistoryYet')}</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {commandHistory.map((item) => (
-                    <Button
-                      key={item}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCommand(item)}
-                      className="max-w-full truncate"
-                      title={item}
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <CommandHistoryPanel
+              t={t}
+              commandHistory={commandHistory}
+              onClearHistory={clearHistory}
+              onSelectCommand={setCommand}
+            />
           </CardContent>
         </Card>
       </div>
