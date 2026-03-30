@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -10,6 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from 'react-i18next'
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 
 type EvalResponse = {
   status: 'success' | 'error'
@@ -20,8 +28,16 @@ type EvalResponse = {
   message?: string
 }
 
-function App() {
+type Language = 'sk' | 'en'
+
+const SUPPORTED_LANGUAGES: Language[] = ['sk', 'en']
+
+function CasConsolePage() {
   const { i18n, t } = useTranslation()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { lang = 'sk' } = useParams<{ lang: string }>()
+
   const [apiBaseUrl, setApiBaseUrl] = useState(
     import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000',
   )
@@ -31,6 +47,18 @@ function App() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!SUPPORTED_LANGUAGES.includes(lang as Language)) {
+      navigate('/sk/console', { replace: true })
+      return
+    }
+
+    if (i18n.language !== lang) {
+      void i18n.changeLanguage(lang)
+      localStorage.setItem('language', lang)
+    }
+  }, [i18n, lang, navigate])
 
   const evalUrl = useMemo(() => {
     return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/eval`
@@ -69,8 +97,21 @@ function App() {
     }
   }
 
-  function switchLanguage(language: 'sk' | 'en') {
-    void i18n.changeLanguage(language)
+  function switchLanguage(language: Language) {
+    const pathParts = location.pathname.split('/').filter(Boolean)
+
+    if (pathParts.length === 0) {
+      navigate(`/${language}/console`)
+      return
+    }
+
+    pathParts[0] = language
+    navigate(`/${pathParts.join('/')}${location.search}${location.hash}`)
+
+    if (i18n.language !== language) {
+      void i18n.changeLanguage(language)
+    }
+
     localStorage.setItem('language', language)
   }
 
@@ -86,7 +127,7 @@ function App() {
           <div className="flex gap-2">
             <Button
               type="button"
-              variant={i18n.language === 'sk' ? 'default' : 'outline'}
+              variant={lang === 'sk' ? 'default' : 'outline'}
               size="sm"
               onClick={() => switchLanguage('sk')}
             >
@@ -94,7 +135,7 @@ function App() {
             </Button>
             <Button
               type="button"
-              variant={i18n.language === 'en' ? 'default' : 'outline'}
+              variant={lang === 'en' ? 'default' : 'outline'}
               size="sm"
               onClick={() => switchLanguage('en')}
             >
@@ -185,6 +226,16 @@ function App() {
         </Card>
       </div>
     </main>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/sk/console" replace />} />
+      <Route path="/:lang/console" element={<CasConsolePage />} />
+      <Route path="*" element={<Navigate to="/sk/console" replace />} />
+    </Routes>
   )
 }
 
