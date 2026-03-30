@@ -52,5 +52,5 @@ jobs:
           php artisan key:generate
           touch database/database.sqlite
 
-      - name: Run tests
+      - name: Run tests (includes health + CAS/log feature tests)
         run: php artisan test
