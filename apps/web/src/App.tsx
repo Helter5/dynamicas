@@ -41,7 +41,7 @@ function CasConsolePage() {
   const { lang = 'sk' } = useParams<{ lang: string }>()
 
   const [apiBaseUrl, setApiBaseUrl] = useState(
-    import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000',
+    import.meta.env.VITE_API_BASE_URL ?? '',
   )
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_API_KEY ?? '')
   const [anonToken, setAnonToken] = useState('web-user-001')
