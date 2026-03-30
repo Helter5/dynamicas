@@ -9,6 +9,7 @@ import {
 import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
 import { ConnectionCard } from '@/components/console/ConnectionCard'
 import { useCommandHistory } from '@/hooks/useCommandHistory'
+import { SimulationResults } from '@/components/simulations/SimulationResults'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +29,18 @@ type EvalResponse = {
     output: string
   }
   message?: string
+}
+
+type SimulationDataPoint = {
+  t: number
+  x: number
+  v: number
+  theta: number
+  omega: number
+}
+
+type SimulationResponse = {
+  series: SimulationDataPoint[]
 }
 
 type Language = 'sk' | 'en'
@@ -50,6 +63,8 @@ function CasConsolePage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isResettingState, setIsResettingState] = useState(false)
+  const [simulationResults, setSimulationResults] = useState<SimulationDataPoint[]>([])
+  const [isSimulating, setIsSimulating] = useState(false)
   const { commandHistory, addToHistory, clearHistory } = useCommandHistory()
 
   useEffect(() => {
@@ -70,6 +85,10 @@ function CasConsolePage() {
 
   const resetStateUrl = useMemo(() => {
     return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/state`
+  }, [apiBaseUrl])
+
+  const simulationUrl = useMemo(() => {
+    return `${apiBaseUrl.replace(/\/$/, '')}/api/simulations/inverted-pendulum`
   }, [apiBaseUrl])
 
   async function runCommand() {
@@ -134,6 +153,39 @@ function CasConsolePage() {
     }
   }
 
+
+  async function runInvertedPendulumSimulation() {
+    setIsSimulating(true)
+    setError('')
+
+    try {
+      const response = await fetch(simulationUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+        },
+        body: JSON.stringify({
+          duration: 5,
+          dt: 0.01,
+          theta_0: 0.5,
+        }),
+      })
+
+      if (!response.ok) {
+        setError('Failed to run simulation')
+        return
+      }
+
+      const data = (await response.json()) as SimulationResponse
+      setSimulationResults(data.series)
+    } catch {
+      setError('Failed to run simulation')
+    } finally {
+      setIsSimulating(false)
+    }
+  }
+
   function switchLanguage(language: Language) {
     const pathParts = location.pathname.split('/').filter(Boolean)
 
@@ -190,6 +242,22 @@ function CasConsolePage() {
           onApiKeyChange={setApiKey}
           onAnonTokenChange={setAnonToken}
         />
+
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Inverted Pendulum Simulation Results</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Button 
+              onClick={runInvertedPendulumSimulation} 
+              disabled={isSimulating} 
+              className="w-full"
+            >
+              {isSimulating ? 'Running...' : 'Run Inverted Pendulum Simulation'}
+            </Button>
+            <SimulationResults data={simulationResults} title="Inverted Pendulum Results" />
+          </CardContent>
+        </Card>
 
         <Card className="shadow-md">
           <CardHeader>
