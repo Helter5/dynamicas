@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ApiLog;
+use App\Models\CasUserState;
 use App\Services\CasEvaluatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -118,6 +119,81 @@ class CasEvalAndLogsTest extends TestCase
             'endpoint' => '/api/cas/eval',
             'command' => 'sqrt(4)',
             'status' => 'success',
+        ]);
+    }
+
+    public function test_cas_eval_persists_state_between_requests(): void
+    {
+        config([
+            'app.api_key' => 'test-api-key',
+            'cas.driver' => 'octave',
+        ]);
+
+        $expectedScripts = ['a=1+1', "a=1+1\na+2"];
+        $callIndex = 0;
+
+        $serviceMock = $this->createMock(CasEvaluatorService::class);
+        $serviceMock
+            ->expects($this->exactly(2))
+            ->method('evaluate')
+            ->willReturnCallback(function (string $script) use (&$callIndex, $expectedScripts): array {
+                $this->assertSame($expectedScripts[$callIndex], $script);
+
+                $callIndex++;
+
+                return $callIndex === 1
+                    ? ['mock' => false, 'output' => '2']
+                    : ['mock' => false, 'output' => '4'];
+            });
+
+        $this->app->instance(CasEvaluatorService::class, $serviceMock);
+
+        $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-state-1')
+            ->postJson('/api/cas/eval', [
+                'command' => 'a=1+1',
+                'source' => 'form',
+            ])
+            ->assertOk()
+            ->assertJsonPath('result.output', '2');
+
+        $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-state-1')
+            ->postJson('/api/cas/eval', [
+                'command' => 'a+2',
+                'source' => 'form',
+            ])
+            ->assertOk()
+            ->assertJsonPath('result.output', '4');
+
+        $this->assertDatabaseHas('cas_user_states', [
+            'anon_token' => 'anon-state-1',
+            'script' => "a=1+1\na+2",
+        ]);
+    }
+
+    public function test_cas_state_can_be_reset(): void
+    {
+        config([
+            'app.api_key' => 'test-api-key',
+        ]);
+
+        CasUserState::create([
+            'anon_token' => 'anon-state-reset-1',
+            'script' => "a=1+1\na+2",
+        ]);
+
+        $this
+            ->withHeader('X-API-KEY', 'test-api-key')
+            ->withHeader('X-ANON-TOKEN', 'anon-state-reset-1')
+            ->deleteJson('/api/cas/state')
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseMissing('cas_user_states', [
+            'anon_token' => 'anon-state-reset-1',
         ]);
     }
 }

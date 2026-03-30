@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApiLog;
+use App\Models\CasUserState;
 use App\Services\CasEvaluatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,11 +25,24 @@ class CasController extends Controller
         ]);
 
         $command = trim($validated['command']);
-        $anonToken = $request->cookie('anon_token') ?: $request->header('X-ANON-TOKEN');
+        $anonToken = $this->resolveAnonToken($request);
+
+        $state = CasUserState::firstOrCreate(
+            ['anon_token' => $anonToken],
+            ['script' => ''],
+        );
+
+        $composedScript = $state->script === ''
+            ? $command
+            : $state->script."\n".$command;
 
         try {
-            $result = $this->casEvaluatorService->evaluate($command);
+            $result = $this->casEvaluatorService->evaluate($composedScript);
             $driver = (string) config('cas.driver', 'mock');
+
+            $state->update([
+                'script' => $composedScript,
+            ]);
 
             ApiLog::create([
                 'anon_token' => $anonToken,
@@ -38,6 +52,7 @@ class CasController extends Controller
                 'meta' => [
                     'source' => $validated['source'] ?? 'form',
                     'driver' => $driver,
+                    'state_lines' => $composedScript === '' ? 0 : count(explode("\n", $composedScript)),
                 ],
             ]);
 
@@ -55,6 +70,7 @@ class CasController extends Controller
                 'meta' => [
                     'source' => $validated['source'] ?? 'form',
                     'driver' => (string) config('cas.driver', 'mock'),
+                    'state_lines' => $state->script === '' ? 0 : count(explode("\n", $state->script)),
                 ],
             ]);
 
@@ -63,5 +79,30 @@ class CasController extends Controller
                 'message' => 'CAS command execution failed.',
             ], 500);
         }
+    }
+
+    public function resetState(Request $request): JsonResponse
+    {
+        $anonToken = $this->resolveAnonToken($request);
+
+        CasUserState::query()
+            ->where('anon_token', $anonToken)
+            ->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'CAS state reset completed.',
+        ]);
+    }
+
+    private function resolveAnonToken(Request $request): string
+    {
+        $token = $request->cookie('anon_token') ?: $request->header('X-ANON-TOKEN');
+
+        if (is_string($token) && $token !== '') {
+            return $token;
+        }
+
+        return hash('sha256', ($request->ip() ?? '0.0.0.0')."|".$request->userAgent());
     }
 }
