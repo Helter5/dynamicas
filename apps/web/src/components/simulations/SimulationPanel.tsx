@@ -76,6 +76,7 @@ export function SimulationPanel({ data, dt, pendulumLength }: SimulationPanelPro
         data={data}
         title="Simulation Results"
         currentTime={playback.currentPoint?.t}
+        currentIndex={playback.currentIndex}
       />
     </div>
   )
