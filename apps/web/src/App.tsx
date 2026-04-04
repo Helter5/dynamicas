@@ -9,7 +9,9 @@ import {
 import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
 import { ConnectionCard } from '@/components/console/ConnectionCard'
 import { useCommandHistory } from '@/hooks/useCommandHistory'
-import { SimulationResults } from '@/components/simulations/SimulationResults'
+import { SimulationPanel } from '@/components/simulations/SimulationPanel'
+import type { SimulationDataPoint } from '@/components/simulations/SimulationResults'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslation } from 'react-i18next'
@@ -29,14 +31,6 @@ type EvalResponse = {
     output: string
   }
   message?: string
-}
-
-type SimulationDataPoint = {
-  t: number
-  x: number
-  v: number
-  theta: number
-  omega: number
 }
 
 type SimulationResponse = {
@@ -255,7 +249,7 @@ function CasConsolePage() {
             >
               {isSimulating ? 'Running...' : 'Run Inverted Pendulum Simulation'}
             </Button>
-            <SimulationResults data={simulationResults} title="Inverted Pendulum Results" />
+            <SimulationPanel data={simulationResults} dt={0.01} />
           </CardContent>
         </Card>
 
@@ -306,9 +300,9 @@ function CasConsolePage() {
             </div>
 
             {error ? (
-              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             ) : null}
 
             <CommandHistoryPanel

@@ -1,104 +1,115 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ReferenceLine,
+} from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface SimulationDataPoint {
-  t: number;
-  x: number;
-  v: number;
-  theta: number;
-  omega: number;
+export interface SimulationDataPoint {
+  t: number
+  x: number
+  v: number
+  theta: number
+  omega: number
 }
 
 interface SimulationResultsProps {
-  data: SimulationDataPoint[];
-  title?: string;
+  data: SimulationDataPoint[]
+  title?: string
+  currentTime?: number
 }
 
-export function SimulationResults({ data, title = 'Simulation Results' }: SimulationResultsProps) {
+const chartConfig = {
+  x: { label: 'Position (x)', color: 'var(--chart-1)' },
+  v: { label: 'Velocity (v)', color: 'var(--chart-2)' },
+  theta: { label: 'Angle (θ)', color: 'var(--chart-3)' },
+  omega: { label: 'Ang. Velocity (ω)', color: 'var(--chart-4)' },
+} satisfies ChartConfig
+
+type DataKey = keyof typeof chartConfig
+
+interface SimChartProps {
+  data: SimulationDataPoint[]
+  title: string
+  dataKeys: DataKey[]
+  yLabel: string
+  currentTime?: number
+}
+
+function SimChart({ data, title, dataKeys, yLabel, currentTime }: SimChartProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-60 w-full">
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="t"
+              label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }}
+              tickFormatter={(v: number) => v.toFixed(1)}
+            />
+            <YAxis
+              label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: 10 }}
+              width={60}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            {dataKeys.map((key) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={`var(--color-${key})`}
+                dot={false}
+                strokeWidth={1.5}
+              />
+            ))}
+            {currentTime != null && (
+              <ReferenceLine
+                x={currentTime}
+                stroke="var(--foreground)"
+                strokeDasharray="4 2"
+                strokeWidth={1.5}
+              />
+            )}
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function SimulationResults({
+  data,
+  title = 'Simulation Results',
+  currentTime,
+}: SimulationResultsProps) {
   if (!data || data.length === 0) {
-    return <div className="text-center text-gray-500">No simulation data to display</div>;
+    return <p className="text-center text-muted-foreground">No simulation data to display</p>
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-4">
       <h2 className="text-xl font-bold">{title}</h2>
-
-      {/* Position vs Time */}
-      <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-semibold mb-4">Position vs Time</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-            <YAxis label={{ value: 'Position (m)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="x" stroke="#8884d8" name="Position (x)" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Velocity vs Time */}
-      <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-semibold mb-4">Velocity vs Time</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-            <YAxis label={{ value: 'Velocity (m/s)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="v" stroke="#82ca9d" name="Velocity (v)" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Angle vs Time */}
-      <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-semibold mb-4">Pendulum Angle vs Time</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-            <YAxis label={{ value: 'Angle (rad)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="theta" stroke="#ffc658" name="Angle (θ)" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Angular Velocity vs Time */}
-      <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-semibold mb-4">Angular Velocity vs Time</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-            <YAxis label={{ value: 'Angular Velocity (rad/s)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="omega" stroke="#ff7c7c" name="Angular Velocity (ω)" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* All variables together */}
-      <div className="border rounded-lg p-4 bg-white">
-        <h3 className="font-semibold mb-4">All Variables</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-            <YAxis label={{ value: 'Value', angle: -90, position: 'insideLeft' }} />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="x" stroke="#8884d8" name="x" strokeWidth={1.5} />
-            <Line type="monotone" dataKey="v" stroke="#82ca9d" name="v" strokeWidth={1.5} />
-            <Line type="monotone" dataKey="theta" stroke="#ffc658" name="θ" strokeWidth={1.5} />
-            <Line type="monotone" dataKey="omega" stroke="#ff7c7c" name="ω" strokeWidth={1.5} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <SimChart data={data} title="Position vs Time" dataKeys={['x']} yLabel="Position (m)" currentTime={currentTime} />
+      <SimChart data={data} title="Velocity vs Time" dataKeys={['v']} yLabel="Velocity (m/s)" currentTime={currentTime} />
+      <SimChart data={data} title="Pendulum Angle vs Time" dataKeys={['theta']} yLabel="Angle (rad)" currentTime={currentTime} />
+      <SimChart data={data} title="Angular Velocity vs Time" dataKeys={['omega']} yLabel="Ang. Vel. (rad/s)" currentTime={currentTime} />
+      <SimChart data={data} title="All Variables" dataKeys={['x', 'v', 'theta', 'omega']} yLabel="Value" currentTime={currentTime} />
     </div>
-  );
+  )
 }
