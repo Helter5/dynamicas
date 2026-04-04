@@ -199,9 +199,10 @@ function CasConsolePage() {
   }
 
   return (
-    <main className="min-h-full bg-gradient-to-b from-stone-100 via-white to-stone-200 p-4 md:p-8">
+    <main className="min-h-full p-4 md:p-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-        <div className="flex items-center justify-between rounded-xl border bg-white/80 p-4 shadow-sm backdrop-blur">
+        
+        <div className="flex items-center justify-between rounded-xl border p-4 shadow-sm bg-foreground text-background">
           <div>
             <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
               {t('title')}
