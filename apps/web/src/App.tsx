@@ -292,28 +292,29 @@ function CasConsolePage() {
 
   return (
     <main className="min-h-full p-4 md:p-8">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-        
-        <div className="flex items-center justify-between rounded-xl border p-4 shadow-sm bg-foreground text-background">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+        <div className="flex items-center justify-between rounded-lg border border-border/80 bg-card px-5 py-4 shadow-sm">
           <div>
             <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
               {t('title')}
             </h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex rounded-lg border border-border/80 bg-muted p-1">
             <Button
               type="button"
-              variant={lang === 'sk' ? 'default' : 'outline'}
+              variant={lang === 'sk' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => switchLanguage('sk')}
+              aria-pressed={lang === 'sk'}
             >
               SK
             </Button>
             <Button
               type="button"
-              variant={lang === 'en' ? 'default' : 'outline'}
+              variant={lang === 'en' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => switchLanguage('en')}
+              aria-pressed={lang === 'en'}
             >
               EN
             </Button>
@@ -335,7 +336,7 @@ function CasConsolePage() {
           apiKey={apiKey}
         />
 
-        <Card className="shadow-md">
+        <Card>
           <CardHeader>
             <CardTitle>{t('command')}</CardTitle>
           </CardHeader>

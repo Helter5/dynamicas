@@ -17,7 +17,7 @@ export function CommandHistoryPanel({
   onSelectCommand,
 }: Props) {
   return (
-    <div className="grid gap-3 rounded-md border border-stone-200 bg-stone-50 p-3">
+    <div className="grid gap-3 rounded-lg border border-border/80 bg-muted/40 p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="grid gap-0.5">
           <Label>{t('history')}</Label>
@@ -35,7 +35,7 @@ export function CommandHistoryPanel({
       </div>
 
       {commandHistory.length === 0 ? (
-        <p className="text-sm text-stone-500">{t('noHistoryYet')}</p>
+        <p className="text-sm text-muted-foreground">{t('noHistoryYet')}</p>
       ) : (
         <div className="grid gap-1.5">
           {commandHistory.map((item, index) => (
@@ -45,7 +45,7 @@ export function CommandHistoryPanel({
               variant={selectedHistoryIndex === index ? 'secondary' : 'outline'}
               size="sm"
               onClick={() => onSelectCommand(item)}
-              className="h-auto min-h-8 w-full justify-start px-2 py-1.5 text-left"
+              className="h-auto min-h-9 w-full justify-start px-3 py-2 text-left"
               title={item}
             >
               <span className="block max-w-full truncate font-mono text-xs leading-5">

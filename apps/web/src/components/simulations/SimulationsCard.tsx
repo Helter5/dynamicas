@@ -132,7 +132,7 @@ function NumberField({
 
 function SimulationEmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-6 text-center text-sm text-muted-foreground">
+    <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
       {message}
     </div>
   )
@@ -223,7 +223,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
   }
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
         <CardTitle>Simulations</CardTitle>
       </CardHeader>

@@ -55,18 +55,18 @@ export function SimulationPanel({
             <InvertedPendulumCanvas
               point={playback.currentPoint as InvertedPendulumDataPoint | null}
               pendulumLength={pendulumLength}
-              className="h-48 w-full rounded-md bg-slate-50"
+              className="h-52 w-full rounded-lg border border-border/70 bg-muted/40"
             />
           ) : (
             <BallAndBeamCanvas
               point={playback.currentPoint as BallAndBeamDataPoint | null}
               beamLength={beamLength}
-              className="h-48 w-full rounded-md bg-slate-50"
+              className="h-52 w-full rounded-lg border border-border/70 bg-muted/40"
             />
           )}
 
           {/* Playback controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 p-2">
             <Button size="icon" variant="outline" onClick={togglePlayPause} aria-label={playback.isPlaying ? 'Pause' : 'Play'}>
               {playback.isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
             </Button>
@@ -82,10 +82,10 @@ export function SimulationPanel({
               max={data.length - 1}
               value={playback.currentIndex}
               onChange={(e) => playback.seekTo(Number(e.target.value))}
-              className="h-1.5 flex-1 cursor-pointer accent-primary"
+              className="h-2 flex-1 cursor-pointer accent-primary"
               aria-label="Seek"
             />
-            <span className="w-14 text-right font-mono text-xs text-muted-foreground tabular-nums">
+            <span className="w-16 rounded-md bg-card px-2 py-1 text-right font-mono text-xs text-muted-foreground tabular-nums ring-1 ring-border/70">
               {(playback.currentPoint?.t ?? 0).toFixed(2)}s
             </span>
           </div>

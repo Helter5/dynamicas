@@ -71,7 +71,7 @@ function TimeChart({ data, group, currentTime }: TimeChartProps) {
       <CardContent>
         <ChartContainer config={config} className="h-56 w-full">
           <ComposedChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.55} />
             <XAxis
               dataKey="t"
               tickFormatter={(v: number) => v.toFixed(1)}
@@ -92,10 +92,10 @@ function TimeChart({ data, group, currentTime }: TimeChartProps) {
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Line yAxisId="left" type="monotone" dataKey={group.leftKey} stroke={`var(--color-${group.leftKey})`} dot={false} strokeWidth={1.5} />
-            <Line yAxisId="right" type="monotone" dataKey={group.rightKey} stroke={`var(--color-${group.rightKey})`} dot={false} strokeWidth={1.5} strokeDasharray="5 2" />
+            <Line yAxisId="left" type="monotone" dataKey={group.leftKey} stroke={`var(--color-${group.leftKey})`} dot={false} strokeWidth={2} />
+            <Line yAxisId="right" type="monotone" dataKey={group.rightKey} stroke={`var(--color-${group.rightKey})`} dot={false} strokeWidth={2} strokeDasharray="5 2" />
             {currentTime != null && (
-              <ReferenceLine yAxisId="left" x={currentTime} stroke="var(--foreground)" strokeDasharray="4 2" strokeWidth={1.5} />
+              <ReferenceLine yAxisId="left" x={currentTime} stroke="var(--primary)" strokeDasharray="4 2" strokeWidth={1.5} />
             )}
           </ComposedChart>
         </ChartContainer>
@@ -128,7 +128,7 @@ function PhaseChart({ data, group, currentIndex }: PhaseChartProps) {
       <CardContent>
         <ChartContainer config={phaseConfig} className="h-56 w-full">
           <LineChart data={plotData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.55} />
             <XAxis
               dataKey="px"
               type="number"
@@ -142,14 +142,14 @@ function PhaseChart({ data, group, currentIndex }: PhaseChartProps) {
               label={{ value: group.phaseYLabel, angle: -90, position: 'insideLeft', offset: 10 }}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Line type="monotone" dataKey="py" stroke={group.leftColor} dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="py" stroke={group.leftColor} dot={false} strokeWidth={2} />
             {currentPt != null && (
               <ReferenceDot
                 x={currentPt.px}
                 y={currentPt.py}
                 r={5}
-                fill="var(--foreground)"
-                stroke="var(--background)"
+                fill="var(--primary)"
+                stroke="var(--card)"
                 strokeWidth={2}
               />
             )}

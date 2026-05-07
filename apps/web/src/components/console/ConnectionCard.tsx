@@ -22,7 +22,7 @@ export function ConnectionCard({
   onAnonTokenChange,
 }: Props) {
   return (
-    <Card className="border-stone-300/70 shadow-md">
+    <Card>
       <CardHeader>
         <CardTitle>{t('connection')}</CardTitle>
       </CardHeader>
