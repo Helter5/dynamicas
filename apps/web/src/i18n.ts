@@ -5,6 +5,7 @@ const resources = {
   sk: {
     translation: {
       title: 'CAS Konzola',
+      settings: 'Nastavenia',
       connection: 'Pripojenie',
       command: 'Príkaz',
       commandLabel: 'Príkaz',
@@ -36,6 +37,7 @@ const resources = {
   en: {
     translation: {
       title: 'CAS Console',
+      settings: 'Settings',
       connection: 'Connection',
       command: 'Command',
       commandLabel: 'Command',

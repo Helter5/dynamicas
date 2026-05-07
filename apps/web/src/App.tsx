@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { CheckCircle2, LoaderCircle } from 'lucide-react'
+import { CheckCircle2, LoaderCircle, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -7,6 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
 import { ConnectionCard } from '@/components/console/ConnectionCard'
 import { useCommandHistory } from '@/hooks/useCommandHistory'
@@ -291,137 +298,154 @@ function CasConsolePage() {
   }
 
   return (
-    <main className="min-h-full p-4 md:p-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="flex items-center justify-between rounded-[20px] bg-card px-5 py-3 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
-          <div>
-            <h1 className="text-xl font-semibold tracking-[-0.022em] md:text-2xl">
-              {t('title')}
-            </h1>
-          </div>
-          <div className="flex rounded-full bg-secondary p-1 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
-            <Button
-              type="button"
-              variant={lang === 'sk' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => switchLanguage('sk')}
-              aria-pressed={lang === 'sk'}
-            >
-              SK
-            </Button>
-            <Button
-              type="button"
-              variant={lang === 'en' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => switchLanguage('en')}
-              aria-pressed={lang === 'en'}
-            >
-              EN
-            </Button>
+    <>
+      <nav className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/75 backdrop-blur-xl">
+        <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-8">
+          <h1 className="text-lg font-semibold md:text-xl">
+            {t('title')}
+          </h1>
+          <div className="flex items-center gap-3">
+            <Dialog>
+              <DialogTrigger
+                aria-label={t('settings')}
+                className="inline-flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <Settings className="size-4" />
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t('settings')}</DialogTitle>
+                </DialogHeader>
+                <ConnectionCard
+                  t={t}
+                  apiBaseUrl={apiBaseUrl}
+                  apiKey={apiKey}
+                  anonToken={anonToken}
+                  variant="plain"
+                  onApiBaseUrlChange={setApiBaseUrl}
+                  onApiKeyChange={setApiKey}
+                  onAnonTokenChange={setAnonToken}
+                />
+              </DialogContent>
+            </Dialog>
+            <div className="flex rounded-full border border-border bg-muted p-1">
+              <Button
+                type="button"
+                variant={lang === 'sk' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => switchLanguage('sk')}
+                aria-pressed={lang === 'sk'}
+              >
+                SK
+              </Button>
+              <Button
+                type="button"
+                variant={lang === 'en' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => switchLanguage('en')}
+                aria-pressed={lang === 'en'}
+              >
+                EN
+              </Button>
+            </div>
           </div>
         </div>
+      </nav>
 
-        <ConnectionCard
-          t={t}
-          apiBaseUrl={apiBaseUrl}
-          apiKey={apiKey}
-          anonToken={anonToken}
-          onApiBaseUrlChange={setApiBaseUrl}
-          onApiKeyChange={setApiKey}
-          onAnonTokenChange={setAnonToken}
-        />
+      <main className="min-h-full p-4 md:p-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+          <SimulationsCard
+            apiBaseUrl={apiBaseUrl}
+            apiKey={apiKey}
+          />
 
-        <SimulationsCard
-          apiBaseUrl={apiBaseUrl}
-          apiKey={apiKey}
-        />
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('command')}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="command">{t('commandLabel')}</Label>
+                <Textarea
+                  ref={commandTextareaRef}
+                  id="command"
+                  value={command}
+                  onChange={(event) => {
+                    setCommand(event.target.value)
+                    resetHistoryNavigation()
+                    historyDraftRef.current = null
+                  }}
+                  onKeyDown={handleCommandHistoryKeyDown}
+                  rows={6}
+                  placeholder="a=1+1"
+                />
+              </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('command')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="command">{t('commandLabel')}</Label>
-              <Textarea
-                ref={commandTextareaRef}
-                id="command"
-                value={command}
-                onChange={(event) => {
-                  setCommand(event.target.value)
-                  resetHistoryNavigation()
-                  historyDraftRef.current = null
-                }}
-                onKeyDown={handleCommandHistoryKeyDown}
-                rows={6}
-                placeholder="a=1+1"
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={runCommand} disabled={isLoading || !command.trim()}>
+                  {isLoading ? (
+                    <>
+                      <LoaderCircle className="animate-spin" />
+                      {t('running')}
+                    </>
+                  ) : (
+                    t('run')
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCommand('')
+                    setOutput('')
+                    setFeedback(null)
+                    resetHistoryNavigation()
+                    historyDraftRef.current = null
+                  }}
+                >
+                  {t('clear')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={resetState}
+                  disabled={isResettingState}
+                >
+                  {isResettingState ? (
+                    <>
+                      <LoaderCircle className="animate-spin" />
+                      {t('resettingState')}
+                    </>
+                  ) : (
+                    t('resetState')
+                  )}
+                </Button>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>{t('output')}</Label>
+                <Textarea readOnly rows={4} value={output} placeholder={t('resultPlaceholder')} />
+              </div>
+
+              {feedback ? (
+                <Alert variant={feedback.variant === 'error' ? 'destructive' : 'default'}>
+                  {feedback.variant === 'success' ? <CheckCircle2 /> : null}
+                  <AlertDescription>{feedback.message}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              <CommandHistoryPanel
+                t={t}
+                commandHistory={commandHistory}
+                selectedHistoryIndex={selectedHistoryIndex}
+                onClearHistory={clearHistory}
+                onSelectCommand={selectCommandFromHistory}
               />
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={runCommand} disabled={isLoading || !command.trim()}>
-                {isLoading ? (
-                  <>
-                    <LoaderCircle className="animate-spin" />
-                    {t('running')}
-                  </>
-                ) : (
-                  t('run')
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setCommand('')
-                  setOutput('')
-                  setFeedback(null)
-                  resetHistoryNavigation()
-                  historyDraftRef.current = null
-                }}
-              >
-                {t('clear')}
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={resetState}
-                disabled={isResettingState}
-              >
-                {isResettingState ? (
-                  <>
-                    <LoaderCircle className="animate-spin" />
-                    {t('resettingState')}
-                  </>
-                ) : (
-                  t('resetState')
-                )}
-              </Button>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>{t('output')}</Label>
-              <Textarea readOnly rows={4} value={output} placeholder={t('resultPlaceholder')} />
-            </div>
-
-            {feedback ? (
-              <Alert variant={feedback.variant === 'error' ? 'destructive' : 'default'}>
-                {feedback.variant === 'success' ? <CheckCircle2 /> : null}
-                <AlertDescription>{feedback.message}</AlertDescription>
-              </Alert>
-            ) : null}
-
-            <CommandHistoryPanel
-              t={t}
-              commandHistory={commandHistory}
-              selectedHistoryIndex={selectedHistoryIndex}
-              onClearHistory={clearHistory}
-              onSelectCommand={selectCommandFromHistory}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </>
   )
 }
 

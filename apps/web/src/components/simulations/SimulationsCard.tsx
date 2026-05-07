@@ -235,25 +235,27 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
           </TabsList>
 
           <TabsContent value="inverted-pendulum" className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <NumberField id="ip-duration" label="Duration (s)" value={invertedForm.duration} onChange={(value) => setInvertedForm({ ...invertedForm, duration: value })} />
-              <NumberField id="ip-dt" label="dt (s)" value={invertedForm.dt} step={0.001} onChange={(value) => setInvertedForm({ ...invertedForm, dt: value })} />
-              <NumberField id="ip-reference" label="Reference x (m)" value={invertedForm.reference} onChange={(value) => setInvertedForm({ ...invertedForm, reference: value })} />
-              <NumberField id="ip-initial-x" label="Initial x (m)" value={invertedForm.initial_x} onChange={(value) => setInvertedForm({ ...invertedForm, initial_x: value })} />
-              <NumberField id="ip-initial-v" label="Initial v (m/s)" value={invertedForm.initial_v} onChange={(value) => setInvertedForm({ ...invertedForm, initial_v: value })} />
-              <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={invertedForm.initial_theta} onChange={(value) => setInvertedForm({ ...invertedForm, initial_theta: value })} />
-              <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
+            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <NumberField id="ip-duration" label="Duration (s)" value={invertedForm.duration} onChange={(value) => setInvertedForm({ ...invertedForm, duration: value })} />
+                <NumberField id="ip-dt" label="dt (s)" value={invertedForm.dt} step={0.001} onChange={(value) => setInvertedForm({ ...invertedForm, dt: value })} />
+                <NumberField id="ip-reference" label="Reference x (m)" value={invertedForm.reference} onChange={(value) => setInvertedForm({ ...invertedForm, reference: value })} />
+                <NumberField id="ip-initial-x" label="Initial x (m)" value={invertedForm.initial_x} onChange={(value) => setInvertedForm({ ...invertedForm, initial_x: value })} />
+                <NumberField id="ip-initial-v" label="Initial v (m/s)" value={invertedForm.initial_v} onChange={(value) => setInvertedForm({ ...invertedForm, initial_v: value })} />
+                <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={invertedForm.initial_theta} onChange={(value) => setInvertedForm({ ...invertedForm, initial_theta: value })} />
+                <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
+              </div>
+              <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="justify-self-end">
+                {loadingSimulation === 'inverted' ? (
+                  <>
+                    <LoaderCircle className="animate-spin" />
+                    {t('runningInvertedPendulum')}
+                  </>
+                ) : (
+                  'Run Inverted Pendulum'
+                )}
+              </Button>
             </div>
-            <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="w-full">
-              {loadingSimulation === 'inverted' ? (
-                <>
-                  <LoaderCircle className="animate-spin" />
-                  {t('runningInvertedPendulum')}
-                </>
-              ) : (
-                'Run Inverted Pendulum'
-              )}
-            </Button>
             {simulationErrors.inverted ? (
               <Alert variant="destructive">
                 <AlertDescription>{simulationErrors.inverted}</AlertDescription>
@@ -272,25 +274,27 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
           </TabsContent>
 
           <TabsContent value="ball-and-beam" className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <NumberField id="bb-duration" label="Duration (s)" value={ballAndBeamForm.duration} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, duration: value })} />
-              <NumberField id="bb-dt" label="dt (s)" value={ballAndBeamForm.dt} step={0.001} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, dt: value })} />
-              <NumberField id="bb-reference" label="Reference r (m)" value={ballAndBeamForm.reference} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, reference: value })} />
-              <NumberField id="bb-initial-r" label="Initial r (m)" value={ballAndBeamForm.initial_r} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r: value })} />
-              <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ballAndBeamForm.initial_r_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r_dot: value })} />
-              <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ballAndBeamForm.initial_alpha} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha: value })} />
-              <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
+            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <NumberField id="bb-duration" label="Duration (s)" value={ballAndBeamForm.duration} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, duration: value })} />
+                <NumberField id="bb-dt" label="dt (s)" value={ballAndBeamForm.dt} step={0.001} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, dt: value })} />
+                <NumberField id="bb-reference" label="Reference r (m)" value={ballAndBeamForm.reference} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, reference: value })} />
+                <NumberField id="bb-initial-r" label="Initial r (m)" value={ballAndBeamForm.initial_r} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r: value })} />
+                <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ballAndBeamForm.initial_r_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r_dot: value })} />
+                <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ballAndBeamForm.initial_alpha} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha: value })} />
+                <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
+              </div>
+              <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="justify-self-end">
+                {loadingSimulation === 'ball' ? (
+                  <>
+                    <LoaderCircle className="animate-spin" />
+                    {t('runningBallAndBeam')}
+                  </>
+                ) : (
+                  'Run Ball and Beam'
+                )}
+              </Button>
             </div>
-            <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="w-full">
-              {loadingSimulation === 'ball' ? (
-                <>
-                  <LoaderCircle className="animate-spin" />
-                  {t('runningBallAndBeam')}
-                </>
-              ) : (
-                'Run Ball and Beam'
-              )}
-            </Button>
             {simulationErrors.ball ? (
               <Alert variant="destructive">
                 <AlertDescription>{simulationErrors.ball}</AlertDescription>
