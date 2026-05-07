@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,11 +18,15 @@ type SimulationResponse = {
 }
 
 type NumericForm = Record<string, number>
+type SimulationKind = 'inverted' | 'ball'
 
 interface SimulationsCardProps {
   apiBaseUrl: string
   apiKey: string
-  onError: (message: string) => void
+}
+
+type ApiErrorResponse = {
+  message?: string
 }
 
 const invertedChartGroups: SimulationChartGroup[] = [
@@ -123,16 +130,37 @@ function NumberField({
   )
 }
 
-export function SimulationsCard({ apiBaseUrl, apiKey, onError }: SimulationsCardProps) {
+function SimulationEmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-6 text-center text-sm text-muted-foreground">
+      {message}
+    </div>
+  )
+}
+
+export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
+  const { t } = useTranslation()
   const [invertedForm, setInvertedForm] = useState(invertedDefaults)
   const [ballAndBeamForm, setBallAndBeamForm] = useState(ballAndBeamDefaults)
   const [invertedData, setInvertedData] = useState<SimulationDataPoint[]>([])
   const [ballAndBeamData, setBallAndBeamData] = useState<SimulationDataPoint[]>([])
   const [invertedDt, setInvertedDt] = useState(invertedDefaults.dt)
   const [ballAndBeamDt, setBallAndBeamDt] = useState(ballAndBeamDefaults.dt)
-  const [loadingSimulation, setLoadingSimulation] = useState<'inverted' | 'ball' | null>(null)
+  const [loadingSimulation, setLoadingSimulation] = useState<SimulationKind | null>(null)
+  const [simulationErrors, setSimulationErrors] = useState<Record<SimulationKind, string | null>>({
+    inverted: null,
+    ball: null,
+  })
 
   const apiRoot = useMemo(() => apiBaseUrl.replace(/\/$/, ''), [apiBaseUrl])
+
+  async function readJsonResponse(response: Response) {
+    try {
+      return await response.json()
+    } catch {
+      return null
+    }
+  }
 
   async function runSimulation(endpoint: string, payload: NumericForm): Promise<SimulationResponse> {
     const response = await fetch(`${apiRoot}/api/simulations/${endpoint}`, {
@@ -144,23 +172,33 @@ export function SimulationsCard({ apiBaseUrl, apiKey, onError }: SimulationsCard
       body: JSON.stringify(payload),
     })
 
+    const data = await readJsonResponse(response)
+
     if (!response.ok) {
-      throw new Error('Failed to run simulation')
+      const errorData = data as ApiErrorResponse | null
+      throw new Error(errorData?.message ?? t('simulationRequestFailed'))
     }
 
-    return await response.json() as SimulationResponse
+    if (!data) {
+      throw new Error(t('cannotConnect'))
+    }
+
+    return data as SimulationResponse
   }
 
   async function runInvertedPendulum() {
     setLoadingSimulation('inverted')
-    onError('')
+    setSimulationErrors((current) => ({ ...current, inverted: null }))
 
     try {
       const data = await runSimulation('inverted-pendulum', invertedForm)
       setInvertedData(data.series)
       setInvertedDt(data.config.dt)
-    } catch {
-      onError('Failed to run inverted pendulum simulation')
+    } catch (error) {
+      setSimulationErrors((current) => ({
+        ...current,
+        inverted: error instanceof Error ? error.message : t('simulationRequestFailed'),
+      }))
     } finally {
       setLoadingSimulation(null)
     }
@@ -168,14 +206,17 @@ export function SimulationsCard({ apiBaseUrl, apiKey, onError }: SimulationsCard
 
   async function runBallAndBeam() {
     setLoadingSimulation('ball')
-    onError('')
+    setSimulationErrors((current) => ({ ...current, ball: null }))
 
     try {
       const data = await runSimulation('ball-and-beam', ballAndBeamForm)
       setBallAndBeamData(data.series)
       setBallAndBeamDt(data.config.dt)
-    } catch {
-      onError('Failed to run ball and beam simulation')
+    } catch (error) {
+      setSimulationErrors((current) => ({
+        ...current,
+        ball: error instanceof Error ? error.message : t('simulationRequestFailed'),
+      }))
     } finally {
       setLoadingSimulation(null)
     }
@@ -204,14 +245,30 @@ export function SimulationsCard({ apiBaseUrl, apiKey, onError }: SimulationsCard
               <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
             </div>
             <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="w-full">
-              {loadingSimulation === 'inverted' ? 'Running...' : 'Run Inverted Pendulum'}
+              {loadingSimulation === 'inverted' ? (
+                <>
+                  <LoaderCircle className="animate-spin" />
+                  {t('runningInvertedPendulum')}
+                </>
+              ) : (
+                'Run Inverted Pendulum'
+              )}
             </Button>
-            <SimulationPanel
-              kind="inverted-pendulum"
-              data={invertedData}
-              dt={invertedDt}
-              chartGroups={invertedChartGroups}
-            />
+            {simulationErrors.inverted ? (
+              <Alert variant="destructive">
+                <AlertDescription>{simulationErrors.inverted}</AlertDescription>
+              </Alert>
+            ) : null}
+            {invertedData.length > 0 ? (
+              <SimulationPanel
+                kind="inverted-pendulum"
+                data={invertedData}
+                dt={invertedDt}
+                chartGroups={invertedChartGroups}
+              />
+            ) : (
+              <SimulationEmptyState message={t('simulationEmptyState')} />
+            )}
           </TabsContent>
 
           <TabsContent value="ball-and-beam" className="space-y-4">
@@ -225,15 +282,31 @@ export function SimulationsCard({ apiBaseUrl, apiKey, onError }: SimulationsCard
               <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
             </div>
             <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="w-full">
-              {loadingSimulation === 'ball' ? 'Running...' : 'Run Ball and Beam'}
+              {loadingSimulation === 'ball' ? (
+                <>
+                  <LoaderCircle className="animate-spin" />
+                  {t('runningBallAndBeam')}
+                </>
+              ) : (
+                'Run Ball and Beam'
+              )}
             </Button>
-            <SimulationPanel
-              kind="ball-and-beam"
-              data={ballAndBeamData}
-              dt={ballAndBeamDt}
-              chartGroups={ballAndBeamChartGroups}
-              beamLength={1}
-            />
+            {simulationErrors.ball ? (
+              <Alert variant="destructive">
+                <AlertDescription>{simulationErrors.ball}</AlertDescription>
+              </Alert>
+            ) : null}
+            {ballAndBeamData.length > 0 ? (
+              <SimulationPanel
+                kind="ball-and-beam"
+                data={ballAndBeamData}
+                dt={ballAndBeamDt}
+                chartGroups={ballAndBeamChartGroups}
+                beamLength={1}
+              />
+            ) : (
+              <SimulationEmptyState message={t('simulationEmptyState')} />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

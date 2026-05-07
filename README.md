@@ -22,12 +22,13 @@ Stav projektu k 30. 3. 2026.
 - Simulacie:
   - inverted pendulum (backend + frontend vizualizacia)
   - ball and beam (backend + frontend vizualizacia)
-
-## Co este treba spravit
-
 - Frontend UX polish:
   - historia prikazov
   - lepsi feedback pri chybach/loadingu
+
+## Co este treba spravit
+
+
 - Realne otestovanie Octave runnera na lokalnom prostredi.
 - Kratka produktova/technicka dokumentacia (OpenAPI alebo aspon jasne API notes).
 

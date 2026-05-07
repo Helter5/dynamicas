@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { CheckCircle2, LoaderCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -30,9 +31,17 @@ type EvalResponse = {
     output: string
   }
   message?: string
+  cooldown?: {
+    seconds_remaining?: number
+  }
 }
 
 type Language = 'sk' | 'en'
+type Feedback = {
+  scope: 'cas' | 'reset'
+  variant: 'success' | 'error'
+  message: string
+}
 
 const SUPPORTED_LANGUAGES: Language[] = ['sk', 'en']
 
@@ -41,6 +50,8 @@ function CasConsolePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { lang = 'sk' } = useParams<{ lang: string }>()
+  const commandTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const historyDraftRef = useRef<string | null>(null)
 
   const [apiBaseUrl, setApiBaseUrl] = useState(
     import.meta.env.VITE_API_BASE_URL ?? '',
@@ -49,10 +60,18 @@ function CasConsolePage() {
   const [anonToken, setAnonToken] = useState('web-user-001')
   const [command, setCommand] = useState('1+1')
   const [output, setOutput] = useState('')
-  const [error, setError] = useState('')
+  const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isResettingState, setIsResettingState] = useState(false)
-  const { commandHistory, addToHistory, clearHistory } = useCommandHistory()
+  const {
+    commandHistory,
+    selectedHistoryIndex,
+    addToHistory,
+    clearHistory,
+    selectPreviousHistoryCommand,
+    selectNextHistoryCommand,
+    resetHistoryNavigation,
+  } = useCommandHistory()
 
   useEffect(() => {
     if (!SUPPORTED_LANGUAGES.includes(lang as Language)) {
@@ -74,9 +93,80 @@ function CasConsolePage() {
     return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/state`
   }, [apiBaseUrl])
 
+  async function readJsonResponse(response: Response) {
+    try {
+      return await response.json()
+    } catch {
+      return null
+    }
+  }
+
+  function focusCommandTextarea() {
+    window.requestAnimationFrame(() => {
+      commandTextareaRef.current?.focus()
+    })
+  }
+
+  function selectCommandFromHistory(nextCommand: string) {
+    setCommand(nextCommand)
+    setFeedback(null)
+    resetHistoryNavigation()
+    historyDraftRef.current = null
+    focusCommandTextarea()
+  }
+
+  function handleCommandHistoryKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+      if (selectedHistoryIndex !== null) {
+        resetHistoryNavigation()
+        historyDraftRef.current = null
+      }
+      return
+    }
+
+    const target = event.currentTarget
+    const hasSelection = target.selectionStart !== target.selectionEnd
+    const textBeforeCursor = command.slice(0, target.selectionStart)
+    const textAfterCursor = command.slice(target.selectionEnd)
+    const isAtFirstLine = !textBeforeCursor.includes('\n')
+    const isAtLastLine = !textAfterCursor.includes('\n')
+
+    if (hasSelection) {
+      return
+    }
+
+    if (event.key === 'ArrowUp' && isAtFirstLine) {
+      event.preventDefault()
+
+      if (selectedHistoryIndex === null) {
+        historyDraftRef.current = command
+      }
+
+      const previousCommand = selectPreviousHistoryCommand()
+
+      if (previousCommand !== null) {
+        setCommand(previousCommand)
+      }
+    }
+
+    if (event.key === 'ArrowDown' && isAtLastLine) {
+      event.preventDefault()
+
+      const nextCommand = selectNextHistoryCommand()
+
+      if (nextCommand !== null) {
+        setCommand(nextCommand)
+        return
+      }
+
+      setCommand(historyDraftRef.current ?? '')
+      historyDraftRef.current = null
+    }
+  }
+
   async function runCommand() {
     setIsLoading(true)
-    setError('')
+    setFeedback(null)
 
     try {
       const response = await fetch(evalUrl, {
@@ -92,17 +182,47 @@ function CasConsolePage() {
         }),
       })
 
-      const data = (await response.json()) as EvalResponse
+      const data = (await readJsonResponse(response)) as EvalResponse | null
+
+      if (!data) {
+        setFeedback({
+          scope: 'cas',
+          variant: 'error',
+          message: t('cannotConnect'),
+        })
+        return
+      }
 
       if (!response.ok || data.status !== 'success') {
-        setError(data.message ?? t('requestFailed'))
+        const secondsRemaining = data.cooldown?.seconds_remaining
+        const message =
+          response.status === 429 && typeof secondsRemaining === 'number'
+            ? t('casCooldown', { count: secondsRemaining })
+            : data.message ?? t('requestFailed')
+
+        setFeedback({
+          scope: 'cas',
+          variant: 'error',
+          message,
+        })
         return
       }
 
       setOutput(data.result?.output ?? '')
       addToHistory(command)
+      resetHistoryNavigation()
+      historyDraftRef.current = null
+      setFeedback({
+        scope: 'cas',
+        variant: 'success',
+        message: t('commandRunSuccess'),
+      })
     } catch {
-      setError(t('cannotConnect'))
+      setFeedback({
+        scope: 'cas',
+        variant: 'error',
+        message: t('cannotConnect'),
+      })
     } finally {
       setIsLoading(false)
     }
@@ -110,7 +230,7 @@ function CasConsolePage() {
 
   async function resetState() {
     setIsResettingState(true)
-    setError('')
+    setFeedback(null)
 
     try {
       const response = await fetch(resetStateUrl, {
@@ -123,14 +243,29 @@ function CasConsolePage() {
       })
 
       if (!response.ok) {
-        setError(t('requestFailed'))
+        setFeedback({
+          scope: 'reset',
+          variant: 'error',
+          message: t('requestFailed'),
+        })
         return
       }
 
       setOutput('')
       setCommand('')
+      resetHistoryNavigation()
+      historyDraftRef.current = null
+      setFeedback({
+        scope: 'reset',
+        variant: 'success',
+        message: t('stateResetSuccess'),
+      })
     } catch {
-      setError(t('cannotConnect'))
+      setFeedback({
+        scope: 'reset',
+        variant: 'error',
+        message: t('cannotConnect'),
+      })
     } finally {
       setIsResettingState(false)
     }
@@ -198,7 +333,6 @@ function CasConsolePage() {
         <SimulationsCard
           apiBaseUrl={apiBaseUrl}
           apiKey={apiKey}
-          onError={setError}
         />
 
         <Card className="shadow-md">
@@ -209,9 +343,15 @@ function CasConsolePage() {
             <div className="grid gap-2">
               <Label htmlFor="command">{t('commandLabel')}</Label>
               <Textarea
+                ref={commandTextareaRef}
                 id="command"
                 value={command}
-                onChange={(event) => setCommand(event.target.value)}
+                onChange={(event) => {
+                  setCommand(event.target.value)
+                  resetHistoryNavigation()
+                  historyDraftRef.current = null
+                }}
+                onKeyDown={handleCommandHistoryKeyDown}
                 rows={6}
                 placeholder="a=1+1"
               />
@@ -219,7 +359,14 @@ function CasConsolePage() {
 
             <div className="flex flex-wrap gap-3">
               <Button onClick={runCommand} disabled={isLoading || !command.trim()}>
-                {isLoading ? t('running') : t('run')}
+                {isLoading ? (
+                  <>
+                    <LoaderCircle className="animate-spin" />
+                    {t('running')}
+                  </>
+                ) : (
+                  t('run')
+                )}
               </Button>
               <Button
                 type="button"
@@ -227,7 +374,9 @@ function CasConsolePage() {
                 onClick={() => {
                   setCommand('')
                   setOutput('')
-                  setError('')
+                  setFeedback(null)
+                  resetHistoryNavigation()
+                  historyDraftRef.current = null
                 }}
               >
                 {t('clear')}
@@ -238,7 +387,14 @@ function CasConsolePage() {
                 onClick={resetState}
                 disabled={isResettingState}
               >
-                {isResettingState ? t('resettingState') : t('resetState')}
+                {isResettingState ? (
+                  <>
+                    <LoaderCircle className="animate-spin" />
+                    {t('resettingState')}
+                  </>
+                ) : (
+                  t('resetState')
+                )}
               </Button>
             </div>
 
@@ -247,17 +403,19 @@ function CasConsolePage() {
               <Textarea readOnly rows={4} value={output} placeholder={t('resultPlaceholder')} />
             </div>
 
-            {error ? (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+            {feedback ? (
+              <Alert variant={feedback.variant === 'error' ? 'destructive' : 'default'}>
+                {feedback.variant === 'success' ? <CheckCircle2 /> : null}
+                <AlertDescription>{feedback.message}</AlertDescription>
               </Alert>
             ) : null}
 
             <CommandHistoryPanel
               t={t}
               commandHistory={commandHistory}
+              selectedHistoryIndex={selectedHistoryIndex}
               onClearHistory={clearHistory}
-              onSelectCommand={setCommand}
+              onSelectCommand={selectCommandFromHistory}
             />
           </CardContent>
         </Card>
