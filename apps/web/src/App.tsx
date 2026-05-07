@@ -292,14 +292,14 @@ function CasConsolePage() {
 
   return (
     <main className="min-h-full p-4 md:p-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-        <div className="flex items-center justify-between rounded-lg border border-border/80 bg-card px-5 py-4 shadow-sm">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <div className="flex items-center justify-between rounded-[20px] bg-card px-5 py-3 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+            <h1 className="text-xl font-semibold tracking-[-0.022em] md:text-2xl">
               {t('title')}
             </h1>
           </div>
-          <div className="flex rounded-lg border border-border/80 bg-muted p-1">
+          <div className="flex rounded-full bg-secondary p-1 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
             <Button
               type="button"
               variant={lang === 'sk' ? 'default' : 'ghost'}

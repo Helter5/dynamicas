@@ -55,18 +55,18 @@ export function SimulationPanel({
             <InvertedPendulumCanvas
               point={playback.currentPoint as InvertedPendulumDataPoint | null}
               pendulumLength={pendulumLength}
-              className="h-52 w-full rounded-lg border border-border/70 bg-muted/40"
+              className="h-52 w-full rounded-2xl bg-secondary shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
             />
           ) : (
             <BallAndBeamCanvas
               point={playback.currentPoint as BallAndBeamDataPoint | null}
               beamLength={beamLength}
-              className="h-52 w-full rounded-lg border border-border/70 bg-muted/40"
+              className="h-52 w-full rounded-2xl bg-secondary shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
             />
           )}
 
           {/* Playback controls */}
-          <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 p-2">
+          <div className="flex items-center gap-2 rounded-full bg-secondary p-2 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
             <Button size="icon" variant="outline" onClick={togglePlayPause} aria-label={playback.isPlaying ? 'Pause' : 'Play'}>
               {playback.isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
             </Button>
@@ -85,7 +85,7 @@ export function SimulationPanel({
               className="h-2 flex-1 cursor-pointer accent-primary"
               aria-label="Seek"
             />
-            <span className="w-16 rounded-md bg-card px-2 py-1 text-right font-mono text-xs text-muted-foreground tabular-nums ring-1 ring-border/70">
+            <span className="w-16 rounded-full bg-card px-2 py-1 text-right font-mono text-xs text-muted-foreground tabular-nums shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
               {(playback.currentPoint?.t ?? 0).toFixed(2)}s
             </span>
           </div>

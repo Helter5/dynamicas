@@ -132,7 +132,7 @@ function NumberField({
 
 function SimulationEmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+    <div className="rounded-2xl bg-secondary px-4 py-8 text-center text-sm text-muted-foreground shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
       {message}
     </div>
   )

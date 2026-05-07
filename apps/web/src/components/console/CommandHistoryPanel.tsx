@@ -17,7 +17,7 @@ export function CommandHistoryPanel({
   onSelectCommand,
 }: Props) {
   return (
-    <div className="grid gap-3 rounded-lg border border-border/80 bg-muted/40 p-4">
+    <div className="grid gap-3 rounded-2xl bg-secondary p-4 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
       <div className="flex items-center justify-between gap-2">
         <div className="grid gap-0.5">
           <Label>{t('history')}</Label>

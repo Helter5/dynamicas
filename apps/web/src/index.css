@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -13,12 +12,13 @@ body,
 
 body {
   margin: 0;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  font-family: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -60,38 +60,38 @@ body {
 }
 
 :root {
-  --background: #f4f7fb;
-  --foreground: #0f172a;
+  --background: #fefefe;
+  --foreground: #0a2629;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0a2629;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #1d4ed8;
+  --popover-foreground: #0a2629;
+  --primary: #207e81;
   --primary-foreground: #ffffff;
-  --secondary: #e8eef7;
-  --secondary-foreground: #1e293b;
-  --muted: #eef3f8;
-  --muted-foreground: #475569;
-  --accent: #dbeafe;
-  --accent-foreground: #1e3a8a;
-  --destructive: #b42318;
-  --border: #cbd5e1;
-  --input: #b8c4d4;
-  --ring: #2563eb;
-  --chart-1: #2563eb;
-  --chart-2: #0f766e;
-  --chart-3: #4f46e5;
-  --chart-4: #b45309;
-  --chart-5: #64748b;
-  --radius: 0.625rem;
-  --sidebar: #0f172a;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #2563eb;
+  --secondary: #f2fbfa;
+  --secondary-foreground: #1b4446;
+  --muted: #f2fbfa;
+  --muted-foreground: #1d6568;
+  --accent: #d3f4f1;
+  --accent-foreground: #0a2629;
+  --destructive: #d70015;
+  --border: #a6e9e4;
+  --input: #72d6d2;
+  --ring: #2ba0a1;
+  --chart-1: #207e81;
+  --chart-2: #44bdbc;
+  --chart-3: #1b4e51;
+  --chart-4: #72d6d2;
+  --chart-5: #0a2629;
+  --radius: 0.75rem;
+  --sidebar: #0a2629;
+  --sidebar-foreground: #f2fbfa;
+  --sidebar-primary: #2ba0a1;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #334155;
-  --sidebar-ring: #60a5fa;
+  --sidebar-accent: #1b4446;
+  --sidebar-accent-foreground: #f2fbfa;
+  --sidebar-border: #1d6568;
+  --sidebar-ring: #72d6d2;
 }
 
 .dark {
