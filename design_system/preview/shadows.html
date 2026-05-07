@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Shadows — 1px Rings</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: #FAFAFC; padding: 20px; color: #1D1D1F; font-family: var(--sk-font-text); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .item { background: #fff; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .demo { height: 38px; border-radius: 8px; background: #fff; }
+  .name { font-size: 11px; font-weight: 600; }
+  .val { font-size: 10px; color: #6E6E73; font-family: ui-monospace, monospace; }
+</style>
+</head><body>
+  <div class="grid">
+    <div class="item">
+      <div class="demo" style="box-shadow: 0 0 0 1px rgb(40,40,40)"></div>
+      <div class="name">Local-nav ring (dark)</div>
+      <div class="val">0 0 0 1px rgb(40,40,40)</div>
+    </div>
+    <div class="item">
+      <div class="demo" style="box-shadow: 0 0 0 1px rgb(110,110,115)"></div>
+      <div class="name">Floating pill outline</div>
+      <div class="val">0 0 0 1px #6E6E73</div>
+    </div>
+    <div class="item">
+      <div class="demo" style="box-shadow: inset 0 0 .5px 0 rgba(0,0,0,0.11)"></div>
+      <div class="name">Color swatch inset</div>
+      <div class="val">inset 0 0 .5px rgba(0,0,0,.11)</div>
+    </div>
+    <div class="item">
+      <div class="demo" style="box-shadow: 0 0 0 1px rgba(180,180,180,0.3)"></div>
+      <div class="name">Form input ring</div>
+      <div class="val">0 0 0 1px rgba(180,180,180,.3)</div>
+    </div>
+  </div>
+</body></html>

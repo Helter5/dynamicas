@@ -118,7 +118,7 @@ function NumberField({
 }) {
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-xs font-semibold tracking-[-0.01em] text-muted-foreground">{label}</Label>
       <Input
         id={id}
         type="number"
@@ -132,7 +132,7 @@ function NumberField({
 
 function SimulationEmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl bg-secondary px-4 py-8 text-center text-sm text-muted-foreground shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
+    <div className="rounded-[20px] bg-white px-4 py-10 text-center text-sm text-muted-foreground shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
       {message}
     </div>
   )
@@ -223,19 +223,20 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Simulations</CardTitle>
+    <Card className="bg-[#1d1d1f] text-white shadow-[0_0_0_1px_rgba(40,40,40,0.8)]">
+      <CardHeader className="gap-2">
+        <p className="text-sm font-semibold text-[#2997ff]">Control models</p>
+        <CardTitle className="text-[40px] leading-[44px] tracking-normal text-white">Simulations</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="inverted-pendulum">
-          <TabsList className="w-full">
+        <Tabs defaultValue="inverted-pendulum" className="gap-5">
+          <TabsList className="w-full bg-white/10 text-white/64 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
             <TabsTrigger value="inverted-pendulum" className="flex-1">Inverted Pendulum</TabsTrigger>
             <TabsTrigger value="ball-and-beam" className="flex-1">Ball and Beam</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inverted-pendulum" className="space-y-4">
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <NumberField id="ip-duration" label="Duration (s)" value={invertedForm.duration} onChange={(value) => setInvertedForm({ ...invertedForm, duration: value })} />
                 <NumberField id="ip-dt" label="dt (s)" value={invertedForm.dt} step={0.001} onChange={(value) => setInvertedForm({ ...invertedForm, dt: value })} />
@@ -245,16 +246,18 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
                 <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={invertedForm.initial_theta} onChange={(value) => setInvertedForm({ ...invertedForm, initial_theta: value })} />
                 <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
               </div>
-              <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="justify-self-end">
-                {loadingSimulation === 'inverted' ? (
-                  <>
-                    <LoaderCircle className="animate-spin" />
-                    {t('runningInvertedPendulum')}
-                  </>
-                ) : (
-                  'Run Inverted Pendulum'
-                )}
-              </Button>
+              <div className="flex items-end lg:justify-end">
+                <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="w-full lg:w-auto lg:min-w-48">
+                  {loadingSimulation === 'inverted' ? (
+                    <>
+                      <LoaderCircle className="animate-spin" />
+                      {t('runningInvertedPendulum')}
+                    </>
+                  ) : (
+                    'Run Inverted Pendulum'
+                  )}
+                </Button>
+              </div>
             </div>
             {simulationErrors.inverted ? (
               <Alert variant="destructive">
@@ -274,7 +277,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
           </TabsContent>
 
           <TabsContent value="ball-and-beam" className="space-y-4">
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <NumberField id="bb-duration" label="Duration (s)" value={ballAndBeamForm.duration} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, duration: value })} />
                 <NumberField id="bb-dt" label="dt (s)" value={ballAndBeamForm.dt} step={0.001} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, dt: value })} />
@@ -284,16 +287,18 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
                 <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ballAndBeamForm.initial_alpha} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha: value })} />
                 <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
               </div>
-              <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="justify-self-end">
-                {loadingSimulation === 'ball' ? (
-                  <>
-                    <LoaderCircle className="animate-spin" />
-                    {t('runningBallAndBeam')}
-                  </>
-                ) : (
-                  'Run Ball and Beam'
-                )}
-              </Button>
+              <div className="flex items-end lg:justify-end">
+                <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="w-full lg:w-auto lg:min-w-48">
+                  {loadingSimulation === 'ball' ? (
+                    <>
+                      <LoaderCircle className="animate-spin" />
+                      {t('runningBallAndBeam')}
+                    </>
+                  ) : (
+                    'Run Ball and Beam'
+                  )}
+                </Button>
+              </div>
             </div>
             {simulationErrors.ball ? (
               <Alert variant="destructive">

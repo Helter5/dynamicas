@@ -46,7 +46,7 @@ export function SimulationPanel({
   return (
     <div className="space-y-4">
       {/* Animation */}
-      <Card>
+      <Card className="bg-white text-foreground">
         <CardHeader>
           <CardTitle className="text-base">Animation</CardTitle>
         </CardHeader>
@@ -55,18 +55,18 @@ export function SimulationPanel({
             <InvertedPendulumCanvas
               point={playback.currentPoint as InvertedPendulumDataPoint | null}
               pendulumLength={pendulumLength}
-              className="h-52 w-full rounded-2xl bg-secondary shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
+              className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
             />
           ) : (
             <BallAndBeamCanvas
               point={playback.currentPoint as BallAndBeamDataPoint | null}
               beamLength={beamLength}
-              className="h-52 w-full rounded-2xl bg-secondary shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
+              className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
             />
           )}
 
           {/* Playback controls */}
-          <div className="flex items-center gap-2 rounded-full bg-secondary p-2 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
+          <div className="flex items-center gap-2 rounded-full bg-[#f5f5f7] p-2 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
             <Button size="icon" variant="outline" onClick={togglePlayPause} aria-label={playback.isPlaying ? 'Pause' : 'Play'}>
               {playback.isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
             </Button>

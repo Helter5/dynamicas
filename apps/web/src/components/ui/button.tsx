@@ -4,15 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-normal whitespace-nowrap transition-all duration-200 ease-[cubic-bezier(0.4,0,0.6,1)] outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:scale-[0.985] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-normal tracking-[-0.012em] whitespace-nowrap transition-all duration-[320ms] ease-[cubic-bezier(0.4,0,0.6,1)] outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:opacity-70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/85 active:bg-primary/75",
+        default: "bg-primary text-primary-foreground hover:bg-[#0066cc] active:bg-[#0066cc]",
         outline:
-          "bg-card text-foreground ring-1 ring-border hover:bg-secondary hover:ring-foreground/20 aria-expanded:bg-secondary aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "bg-card text-foreground shadow-[0_0_0_1px_rgba(180,180,180,0.3)] hover:bg-secondary hover:shadow-[0_0_0_1px_rgba(110,110,115,0.55)] aria-expanded:bg-secondary aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground ring-1 ring-border/70 hover:bg-accent aria-expanded:bg-accent aria-expanded:text-accent-foreground",
+          "bg-secondary text-secondary-foreground shadow-[0_0_0_1px_rgba(180,180,180,0.3)] hover:bg-accent aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         ghost:
           "hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:

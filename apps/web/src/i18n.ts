@@ -5,6 +5,14 @@ const resources = {
   sk: {
     translation: {
       title: 'CAS Konzola',
+      heroEyebrow: 'Dynamické modely',
+      heroTitle: 'Simulácie a CAS v jednom pracovnom priestore.',
+      heroSubtitle: 'Spúšťajte riadiace modely, sledujte odozvu systému a vyhodnocujte CAS príkazy bez prepínania kontextu.',
+      workspaceStatus: 'Pracovný priestor',
+      readyToRun: 'Pripravené na výpočet',
+      homeNav: 'Domov',
+      simulationsNav: 'Simulácie',
+      consoleNav: 'Konzola',
       settings: 'Nastavenia',
       connection: 'Pripojenie',
       command: 'Príkaz',
@@ -37,6 +45,14 @@ const resources = {
   en: {
     translation: {
       title: 'CAS Console',
+      heroEyebrow: 'Dynamic models',
+      heroTitle: 'Simulations and CAS in one workspace.',
+      heroSubtitle: 'Run control models, inspect system response, and evaluate CAS commands without switching context.',
+      workspaceStatus: 'Workspace',
+      readyToRun: 'Ready to compute',
+      homeNav: 'Home',
+      simulationsNav: 'Simulations',
+      consoleNav: 'Console',
       settings: 'Settings',
       connection: 'Connection',
       command: 'Command',

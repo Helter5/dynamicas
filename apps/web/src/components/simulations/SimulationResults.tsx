@@ -64,9 +64,9 @@ function TimeChart({ data, group, currentTime }: TimeChartProps) {
   const config = chartConfigFor(group)
 
   return (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{group.title}</CardTitle>
+        <CardTitle className="text-sm font-semibold tracking-[-0.01em]">{group.title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={config} className="h-56 w-full">
@@ -121,9 +121,9 @@ function PhaseChart({ data, group, currentIndex }: PhaseChartProps) {
   }
 
   return (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{group.phaseTitle}</CardTitle>
+        <CardTitle className="text-sm font-semibold tracking-[-0.01em]">{group.phaseTitle}</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={phaseConfig} className="h-56 w-full">
@@ -175,10 +175,10 @@ export function SimulationResults({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="text-[25.5px] font-semibold leading-[31.5px] tracking-[-0.015em] text-white">{title}</h2>
 
-      <Tabs defaultValue="time">
-        <TabsList className="w-full">
+      <Tabs defaultValue="time" className="gap-4">
+        <TabsList className="w-full bg-white/10 text-white/64 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
           <TabsTrigger value="time" className="flex-1">Time Courses</TabsTrigger>
           <TabsTrigger value="state" className="flex-1">State Space</TabsTrigger>
         </TabsList>
