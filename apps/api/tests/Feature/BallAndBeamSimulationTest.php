@@ -4,13 +4,13 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 
-class InvertedPendulumSimulationTest extends TestCase
+class BallAndBeamSimulationTest extends TestCase
 {
-    public function test_inverted_pendulum_requires_api_key(): void
+    public function test_ball_and_beam_requires_api_key(): void
     {
         config(['app.api_key' => 'test-api-key']);
 
-        $response = $this->postJson('/api/simulations/inverted-pendulum', []);
+        $response = $this->postJson('/api/simulations/ball-and-beam', []);
 
         $response
             ->assertUnauthorized()
@@ -19,48 +19,48 @@ class InvertedPendulumSimulationTest extends TestCase
             ]);
     }
 
-    public function test_inverted_pendulum_returns_series_data(): void
+    public function test_ball_and_beam_returns_series_data(): void
     {
         config(['app.api_key' => 'test-api-key']);
 
         $response = $this
             ->withHeader('X-API-KEY', 'test-api-key')
-            ->postJson('/api/simulations/inverted-pendulum', [
+            ->postJson('/api/simulations/ball-and-beam', [
                 'duration' => 1.0,
                 'dt' => 0.1,
-                'initial_theta' => 0.1,
-                'reference' => 0.2,
+                'reference' => 0.25,
+                'initial_r' => 0,
             ]);
 
         $response
             ->assertOk()
             ->assertJsonPath('status', 'success')
-            ->assertJsonPath('simulation', 'inverted_pendulum')
+            ->assertJsonPath('simulation', 'ball_and_beam')
             ->assertJsonPath('config.duration', 1)
             ->assertJsonPath('config.dt', 0.1)
             ->assertJsonPath('config.steps', 10)
             ->assertJsonCount(11, 'series')
             ->assertJsonStructure([
                 'series' => [
-                    '*' => ['t', 'x', 'v', 'theta', 'omega', 'reference', 'u'],
+                    '*' => ['t', 'r', 'r_dot', 'alpha', 'alpha_dot', 'reference', 'u'],
                 ],
             ]);
     }
 
-    public function test_inverted_pendulum_validates_inputs(): void
+    public function test_ball_and_beam_validates_inputs(): void
     {
         config(['app.api_key' => 'test-api-key']);
 
         $response = $this
             ->withHeader('X-API-KEY', 'test-api-key')
-            ->postJson('/api/simulations/inverted-pendulum', [
+            ->postJson('/api/simulations/ball-and-beam', [
                 'duration' => 0.1,
                 'dt' => 0.0001,
-                'initial_theta' => 2,
+                'initial_alpha' => 2,
             ]);
 
         $response
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['duration', 'dt', 'initial_theta']);
+            ->assertJsonValidationErrors(['duration', 'dt', 'initial_alpha']);
     }
 }

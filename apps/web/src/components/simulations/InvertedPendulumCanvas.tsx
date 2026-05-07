@@ -1,8 +1,15 @@
 import { useEffect, useRef } from 'react'
 import type { SimulationDataPoint } from './SimulationResults'
 
+export interface InvertedPendulumDataPoint extends SimulationDataPoint {
+  x: number
+  v: number
+  theta: number
+  omega: number
+}
+
 interface InvertedPendulumCanvasProps {
-  point: SimulationDataPoint | null
+  point: InvertedPendulumDataPoint | null
   pendulumLength?: number
   xRange?: number
   className?: string

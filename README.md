@@ -19,12 +19,12 @@ Stav projektu k 30. 3. 2026.
 - Cooldown/throttle pre CAS requesty je hotovy (konfigurovatelny cez `CAS_COOLDOWN_MINUTES`).
 - Docker Compose setup je hotovy (API + web).
 - Grafy pre simulacie (casove priebehy, stavove veliciny).
-
-## Co este treba spravit
-
 - Simulacie:
   - inverted pendulum (backend + frontend vizualizacia)
   - ball and beam (backend + frontend vizualizacia)
+
+## Co este treba spravit
+
 - Frontend UX polish:
   - historia prikazov
   - lepsi feedback pri chybach/loadingu

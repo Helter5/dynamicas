@@ -23,6 +23,7 @@ Route::middleware('api.cors')->group(function () {
         Route::post('/cas/eval', [CasController::class, 'eval']);
         Route::delete('/cas/state', [CasController::class, 'resetState']);
         Route::post('/simulations/inverted-pendulum', [SimulationController::class, 'invertedPendulum']);
+        Route::post('/simulations/ball-and-beam', [SimulationController::class, 'ballAndBeam']);
         Route::get('/logs/export.csv', [LogController::class, 'exportCsv']);
 
         Route::get('/user', function (Request $request) {
