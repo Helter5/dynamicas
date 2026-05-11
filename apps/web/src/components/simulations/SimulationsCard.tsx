@@ -23,6 +23,7 @@ type SimulationKind = 'inverted' | 'ball'
 interface SimulationsCardProps {
   apiBaseUrl: string
   apiKey: string
+  anonToken: string
 }
 
 type ApiErrorResponse = {
@@ -138,7 +139,7 @@ function SimulationEmptyState({ message }: { message: string }) {
   )
 }
 
-export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
+export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCardProps) {
   const { t } = useTranslation()
   const [invertedForm, setInvertedForm] = useState(invertedDefaults)
   const [ballAndBeamForm, setBallAndBeamForm] = useState(ballAndBeamDefaults)
@@ -168,7 +169,9 @@ export function SimulationsCard({ apiBaseUrl, apiKey }: SimulationsCardProps) {
       headers: {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
+        'X-ANON-TOKEN': anonToken,
       },
+      credentials: 'include',
       body: JSON.stringify(payload),
     })
 

@@ -12,7 +12,6 @@ class RequireApiKey
     {
         $expectedApiKey = config('app.api_key');
 
-        // API key is not configured
         if (! is_string($expectedApiKey) || $expectedApiKey === '') {
             return response()->json([
                 'message' => 'Service API key is not configured.',

@@ -14,7 +14,8 @@ import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { CommandConsolePage } from '@/pages/CommandConsolePage'
 import { HomePage } from '@/pages/HomePage'
-import { SimulationsPgae } from '@/pages/SimulationsPgae'
+import { SimulationsPage } from '@/pages/SimulationsPage'
+import { StatsPage } from '@/pages/StatsPage'
 
 type Language = 'sk' | 'en'
 
@@ -25,6 +26,27 @@ type OutletConnection = {
 }
 
 const SUPPORTED_LANGUAGES: Language[] = ['sk', 'en']
+const ANON_TOKEN_STORAGE_KEY = 'dynamicas_anon_token'
+
+function createAnonToken() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+
+  return `anon-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function getStoredAnonToken() {
+  const storedToken = localStorage.getItem(ANON_TOKEN_STORAGE_KEY)
+
+  if (storedToken) {
+    return storedToken
+  }
+
+  const nextToken = createAnonToken()
+  localStorage.setItem(ANON_TOKEN_STORAGE_KEY, nextToken)
+  return nextToken
+}
 
 function useLanguageRoute() {
   const { i18n, t } = useTranslation()
@@ -75,7 +97,12 @@ function CasConsoleShell() {
     import.meta.env.VITE_API_BASE_URL ?? '',
   )
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_API_KEY ?? '')
-  const [anonToken, setAnonToken] = useState('web-user-001')
+  const [anonToken, setAnonTokenState] = useState(getStoredAnonToken)
+
+  function setAnonToken(anonToken: string) {
+    localStorage.setItem(ANON_TOKEN_STORAGE_KEY, anonToken)
+    setAnonTokenState(anonToken)
+  }
 
   return (
     <>
@@ -101,10 +128,22 @@ function CasConsoleShell() {
 }
 
 function SimulationsRoute() {
+  const { apiBaseUrl, apiKey, anonToken } = useOutletConnection()
+
+  return (
+    <SimulationsPage
+      apiBaseUrl={apiBaseUrl}
+      apiKey={apiKey}
+      anonToken={anonToken}
+    />
+  )
+}
+
+function StatsRoute() {
   const { apiBaseUrl, apiKey } = useOutletConnection()
 
   return (
-    <SimulationsPgae
+    <StatsPage
       apiBaseUrl={apiBaseUrl}
       apiKey={apiKey}
     />
@@ -135,6 +174,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="simulations" element={<SimulationsRoute />} />
         <Route path="console" element={<CommandConsoleRoute />} />
+        <Route path="stats" element={<StatsRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/sk" replace />} />
     </Routes>

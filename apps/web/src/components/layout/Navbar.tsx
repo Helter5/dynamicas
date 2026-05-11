@@ -40,6 +40,7 @@ export function Navbar({
     { to: `/${lang}`, label: t('homeNav'), end: true },
     { to: `/${lang}/simulations`, label: t('simulationsNav'), end: false },
     { to: `/${lang}/console`, label: t('consoleNav'), end: false },
+    { to: `/${lang}/stats`, label: t('statsNav'), end: false },
   ]
 
   return (

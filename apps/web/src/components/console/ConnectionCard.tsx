@@ -49,7 +49,7 @@ export function ConnectionCard({
           id="anon-token"
           value={anonToken}
           onChange={(event) => onAnonTokenChange(event.target.value)}
-          placeholder="web-user-001"
+          placeholder="generated-browser-token"
         />
       </div>
     </div>

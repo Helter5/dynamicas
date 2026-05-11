@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { SyntaxTextarea } from '@/components/console/SyntaxTextarea'
 import {
   Card,
   CardContent,
@@ -257,8 +258,8 @@ export function CommandConsolePage({
       <CardContent className="grid gap-5">
         <div className="grid gap-2">
           <Label htmlFor="command" className="text-white/72">{t('commandLabel')}</Label>
-          <Textarea
-            ref={commandTextareaRef}
+          <SyntaxTextarea
+            textareaRef={commandTextareaRef}
             id="command"
             value={command}
             onChange={(event) => {
@@ -269,7 +270,7 @@ export function CommandConsolePage({
             onKeyDown={handleCommandHistoryKeyDown}
             rows={6}
             placeholder="a=1+1"
-            className="min-h-40 border-white/10 bg-white/[0.06] font-mono text-sm leading-6 text-white placeholder:text-white/36 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] focus-visible:ring-[#2997ff]"
+            className="border border-white/10 bg-white/[0.06] shadow-[0_0_0_1px_rgba(255,255,255,0.05)]"
           />
         </div>
 

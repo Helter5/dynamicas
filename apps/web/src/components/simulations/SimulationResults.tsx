@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   ComposedChart,
   Line,
@@ -113,7 +114,10 @@ interface PhaseChartProps {
 }
 
 function PhaseChart({ data, group, currentIndex }: PhaseChartProps) {
-  const plotData = data.map((pt) => ({ px: pt[group.leftKey], py: pt[group.rightKey] }))
+  const plotData = useMemo(
+    () => data.map((pt) => ({ px: pt[group.leftKey], py: pt[group.rightKey] })),
+    [data, group.leftKey, group.rightKey],
+  )
   const currentPt = currentIndex != null ? plotData[currentIndex] : undefined
 
   const phaseConfig: ChartConfig = {

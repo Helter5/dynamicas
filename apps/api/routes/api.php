@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CasController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\SimulationController;
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::middleware('api.cors')->group(function () {
         Route::post('/simulations/inverted-pendulum', [SimulationController::class, 'invertedPendulum']);
         Route::post('/simulations/ball-and-beam', [SimulationController::class, 'ballAndBeam']);
         Route::get('/logs/export.csv', [LogController::class, 'exportCsv']);
+        Route::get('/stats/simulations', [StatsController::class, 'summary']);
+        Route::get('/stats/simulations/{simulation}', [StatsController::class, 'details']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();

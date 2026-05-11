@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ApiLog;
 use App\Models\CasUserState;
+use App\Services\ApiRequestLogger;
 use App\Services\CasEvaluatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +14,8 @@ class CasController extends Controller
 {
     public function __construct(
         private readonly CasEvaluatorService $casEvaluatorService,
-    ) {
-    }
+        private readonly ApiRequestLogger $apiRequestLogger,
+    ) {}
 
     public function eval(Request $request): JsonResponse
     {
@@ -32,23 +32,21 @@ class CasController extends Controller
             ['script' => ''],
         );
 
-        // Check cooldown
         if ($state->last_eval_at !== null) {
             $cooldownSeconds = (int) config('cas.cooldown_seconds', 10);
+
             if ($cooldownSeconds > 0) {
-                $lastEvalTime = $state->last_eval_at;
-                $nextEvalTime = $lastEvalTime->addSeconds($cooldownSeconds);
+                $nextEvalTime = $state->last_eval_at->copy()->addSeconds($cooldownSeconds);
                 $now = now();
 
                 if ($now->isBefore($nextEvalTime)) {
-                    $secondsRemaining = (int) $nextEvalTime->diffInSeconds($now);
                     return response()->json([
                         'status' => 'error',
                         'message' => 'CAS evaluation is on cooldown.',
                         'cooldown' => [
                             'enabled' => true,
                             'total_seconds' => $cooldownSeconds,
-                            'seconds_remaining' => $secondsRemaining,
+                            'seconds_remaining' => (int) ceil($now->diffInSeconds($nextEvalTime)),
                             'next_eval_at' => $nextEvalTime->toIso8601String(),
                         ],
                     ], 429);
@@ -66,38 +64,38 @@ class CasController extends Controller
 
             $state->update([
                 'script' => $composedScript,
-                            'last_eval_at' => now(),
+                'last_eval_at' => now(),
             ]);
 
-            ApiLog::create([
-                'anon_token' => $anonToken,
-                'endpoint' => '/api/cas/eval',
-                'command' => $command,
-                'status' => 'success',
-                'meta' => [
+            $this->apiRequestLogger->log(
+                anonToken: $anonToken,
+                endpoint: '/api/cas/eval',
+                command: $command,
+                status: 'success',
+                meta: [
                     'source' => $validated['source'] ?? 'form',
                     'driver' => $driver,
                     'state_lines' => $composedScript === '' ? 0 : count(explode("\n", $composedScript)),
                 ],
-            ]);
+            );
 
             return response()->json([
                 'status' => 'success',
                 'result' => $result,
             ]);
         } catch (Throwable $exception) {
-            ApiLog::create([
-                'anon_token' => $anonToken,
-                'endpoint' => '/api/cas/eval',
-                'command' => $command,
-                'status' => 'error',
-                'error_message' => $exception->getMessage(),
-                'meta' => [
+            $this->apiRequestLogger->log(
+                anonToken: $anonToken,
+                endpoint: '/api/cas/eval',
+                command: $command,
+                status: 'error',
+                errorMessage: $exception->getMessage(),
+                meta: [
                     'source' => $validated['source'] ?? 'form',
                     'driver' => (string) config('cas.driver', 'mock'),
                     'state_lines' => $state->script === '' ? 0 : count(explode("\n", $state->script)),
                 ],
-            ]);
+            );
 
             return response()->json([
                 'status' => 'error',

@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BallAndBeamSimulationTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_ball_and_beam_requires_api_key(): void
     {
         config(['app.api_key' => 'test-api-key']);

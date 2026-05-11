@@ -27,7 +27,7 @@ export function SimulationPanel({
   pendulumLength,
   beamLength,
 }: SimulationPanelProps) {
-  const playback = useSimulationPlayback({ data, dt })
+  const playback = useSimulationPlayback({ data, dt, targetFps: 8 })
 
   const togglePlayPause = () => {
     if (playback.isPlaying) {

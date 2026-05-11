@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BallAndBeamRequest;
 use App\Http\Requests\InvertedPendulumRequest;
+use App\Services\ApiRequestLogger;
+use App\Services\SimulationUsageTracker;
 use App\Services\StateSpaceSimulationService;
 use Illuminate\Http\JsonResponse;
 
@@ -12,6 +14,8 @@ class SimulationController extends Controller
 {
     public function __construct(
         private readonly StateSpaceSimulationService $simulations,
+        private readonly SimulationUsageTracker $usageTracker,
+        private readonly ApiRequestLogger $apiRequestLogger,
     ) {}
 
     public function invertedPendulum(InvertedPendulumRequest $request): JsonResponse
@@ -23,7 +27,6 @@ class SimulationController extends Controller
         $steps = (int) floor($duration / $dt);
         $reference = (float) ($validated['reference'] ?? 0.2);
 
-        // Constants mirror cas/models/kyvadlo.txt: CTMS state-space model with LQR feedback.
         $series = $this->simulations->simulateClosedLoop(
             a: [
                 [0.0, 1.0, 0.0, 0.0],
@@ -46,6 +49,9 @@ class SimulationController extends Controller
             dt: $dt,
         );
 
+        $anonToken = $this->usageTracker->record($request, 'inverted_pendulum');
+        $this->logSimulationRequest($anonToken, '/api/simulations/inverted-pendulum', $validated);
+
         return response()->json([
             'status' => 'success',
             'simulation' => 'inverted_pendulum',
@@ -56,7 +62,7 @@ class SimulationController extends Controller
                 'reference' => $reference,
             ],
             'series' => $series,
-        ]);
+        ])->cookie('anon_token', $anonToken, 60 * 24 * 365, null, null, false, false, false, 'Lax');
     }
 
     public function ballAndBeam(BallAndBeamRequest $request): JsonResponse
@@ -68,7 +74,6 @@ class SimulationController extends Controller
         $steps = (int) floor($duration / $dt);
         $reference = (float) ($validated['reference'] ?? 0.25);
 
-        // Constants mirror cas/models/gulicka.txt: CTMS state-space model with pole placement feedback.
         $series = $this->simulations->simulateClosedLoop(
             a: [
                 [0.0, 1.0, 0.0, 0.0],
@@ -91,6 +96,9 @@ class SimulationController extends Controller
             dt: $dt,
         );
 
+        $anonToken = $this->usageTracker->record($request, 'ball_and_beam');
+        $this->logSimulationRequest($anonToken, '/api/simulations/ball-and-beam', $validated);
+
         return response()->json([
             'status' => 'success',
             'simulation' => 'ball_and_beam',
@@ -101,6 +109,22 @@ class SimulationController extends Controller
                 'reference' => $reference,
             ],
             'series' => $series,
-        ]);
+        ])->cookie('anon_token', $anonToken, 60 * 24 * 365, null, null, false, false, false, 'Lax');
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function logSimulationRequest(string $anonToken, string $endpoint, array $payload): void
+    {
+        $this->apiRequestLogger->log(
+            anonToken: $anonToken,
+            endpoint: $endpoint,
+            command: json_encode($payload, JSON_THROW_ON_ERROR),
+            status: 'success',
+            meta: [
+                'source' => 'animation',
+            ],
+        );
     }
 }

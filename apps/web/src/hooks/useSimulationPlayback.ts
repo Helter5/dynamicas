@@ -5,6 +5,7 @@ interface UseSimulationPlaybackOptions {
   data: SimulationDataPoint[]
   dt: number
   speed?: number
+  targetFps?: number
 }
 
 interface UseSimulationPlaybackReturn {
@@ -57,6 +58,7 @@ export function useSimulationPlayback({
   data,
   dt,
   speed: initialSpeed = 1,
+  targetFps = 24,
 }: UseSimulationPlaybackOptions): UseSimulationPlaybackReturn {
   const [state, dispatch] = useReducer(reducer, {
     currentIndex: 0,
@@ -66,15 +68,18 @@ export function useSimulationPlayback({
 
   const rafRef = useRef<number | null>(null)
   const lastTimestampRef = useRef<number | null>(null)
+  const lastUiUpdateTimestampRef = useRef<number | null>(null)
   const accumulatedTimeRef = useRef(0)
   const stateRef = useRef(state)
   const dataRef = useRef(data)
   const dtRef = useRef(dt)
+  const frameDurationRef = useRef(1000 / targetFps)
 
   // Keep refs in sync so rAF callback reads current values without re-subscribing
   useEffect(() => { stateRef.current = state })
   useEffect(() => { dataRef.current = data })
   useEffect(() => { dtRef.current = dt })
+  useEffect(() => { frameDurationRef.current = 1000 / targetFps }, [targetFps])
 
   const stopLoop = useCallback(() => {
     if (rafRef.current != null) {
@@ -82,6 +87,7 @@ export function useSimulationPlayback({
       rafRef.current = null
     }
     lastTimestampRef.current = null
+    lastUiUpdateTimestampRef.current = null
   }, [])
 
   const startLoop = useCallback(() => {
@@ -100,14 +106,23 @@ export function useSimulationPlayback({
         Math.floor(accumulatedTimeRef.current / dtRef.current),
         dataRef.current.length - 1,
       )
+      const isFinalIndex = newIndex >= dataRef.current.length - 1
+      const shouldUpdateUi =
+        lastUiUpdateTimestampRef.current == null ||
+        timestamp - lastUiUpdateTimestampRef.current >= frameDurationRef.current ||
+        isFinalIndex
 
-      if (newIndex >= dataRef.current.length - 1) {
+      if (shouldUpdateUi && newIndex !== stateRef.current.currentIndex) {
+        lastUiUpdateTimestampRef.current = timestamp
+        dispatch({ type: 'ADVANCE', index: newIndex })
+      }
+
+      if (isFinalIndex) {
         dispatch({ type: 'FINISH' })
         rafRef.current = null
         return
       }
 
-      dispatch({ type: 'ADVANCE', index: newIndex })
       rafRef.current = requestAnimationFrame(tick)
     }
 
@@ -118,6 +133,7 @@ export function useSimulationPlayback({
     if (data.length === 0) return
     if (stateRef.current.currentIndex >= data.length - 1) {
       accumulatedTimeRef.current = 0
+      lastUiUpdateTimestampRef.current = null
       dispatch({ type: 'SEEK', index: 0 })
     }
     dispatch({ type: 'PLAY' })
@@ -127,6 +143,7 @@ export function useSimulationPlayback({
 
   const reset = useCallback(() => {
     accumulatedTimeRef.current = 0
+    lastUiUpdateTimestampRef.current = null
     dispatch({ type: 'RESET' })
   }, [])
 
@@ -134,6 +151,7 @@ export function useSimulationPlayback({
     (index: number) => {
       const clamped = Math.max(0, Math.min(index, data.length - 1))
       accumulatedTimeRef.current = clamped * dt
+      lastUiUpdateTimestampRef.current = null
       dispatch({ type: 'SEEK', index: clamped })
     },
     [data.length, dt],
@@ -155,6 +173,7 @@ export function useSimulationPlayback({
   useEffect(() => {
     stopLoop()
     accumulatedTimeRef.current = 0
+    lastUiUpdateTimestampRef.current = null
     dispatch({ type: 'RESET' })
   }, [data, stopLoop])
 

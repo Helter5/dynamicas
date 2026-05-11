@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class InvertedPendulumSimulationTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_inverted_pendulum_requires_api_key(): void
     {
         config(['app.api_key' => 'test-api-key']);

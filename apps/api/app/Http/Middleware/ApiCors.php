@@ -24,6 +24,7 @@ class ApiCors
             'Access-Control-Allow-Origin' => $allowOrigin,
             'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
             'Access-Control-Allow-Headers' => 'Content-Type, X-API-KEY, X-ANON-TOKEN, Authorization, X-Requested-With',
+            'Access-Control-Allow-Credentials' => 'true',
             'Access-Control-Max-Age' => '3600',
             'Vary' => 'Origin',
         ];
