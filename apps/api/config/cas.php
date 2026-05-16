@@ -13,4 +13,8 @@ return [
     'simulation_stats_interval_seconds' => (int) env('SIMULATION_STATS_INTERVAL_SECONDS', 600),
 
     'simulation_delay_ms' => (int) env('SIMULATION_DELAY_MS', 0),
+
+    'max_script_bytes' => (int) env('CAS_MAX_SCRIPT_BYTES', 50000),
+
+    'simulation_rate_limit' => (int) env('SIMULATION_RATE_LIMIT', 30),
 ];

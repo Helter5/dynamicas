@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     environment:
       APP_ENV: local
-      APP_DEBUG: "true"
+      APP_DEBUG: "false"
       APP_URL: http://localhost:8000
       API_KEY: local-smoke-key
       DB_CONNECTION: sqlite

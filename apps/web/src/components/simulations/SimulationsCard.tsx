@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -7,27 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useSimulationForm } from '@/hooks/useSimulationForm'
 import { SimulationPanel } from './SimulationPanel'
-import type { SimulationChartGroup, SimulationDataPoint } from './SimulationResults'
-
-type SimulationResponse = {
-  config: {
-    dt: number
-  }
-  series: SimulationDataPoint[]
-}
-
-type NumericForm = Record<string, number>
-type SimulationKind = 'inverted' | 'ball'
+import type { SimulationChartGroup } from './SimulationResults'
 
 interface SimulationsCardProps {
   apiBaseUrl: string
   apiKey: string
   anonToken: string
-}
-
-type ApiErrorResponse = {
-  message?: string
 }
 
 const invertedChartGroups: SimulationChartGroup[] = [
@@ -84,7 +71,7 @@ const ballAndBeamChartGroups: SimulationChartGroup[] = [
   },
 ]
 
-const invertedDefaults: NumericForm = {
+const invertedDefaults = {
   duration: 5,
   dt: 0.01,
   reference: 0.2,
@@ -94,7 +81,7 @@ const invertedDefaults: NumericForm = {
   initial_omega: 0,
 }
 
-const ballAndBeamDefaults: NumericForm = {
+const ballAndBeamDefaults = {
   duration: 5,
   dt: 0.01,
   reference: 0.25,
@@ -141,89 +128,25 @@ function SimulationEmptyState({ message }: { message: string }) {
 
 export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCardProps) {
   const { t } = useTranslation()
-  const [invertedForm, setInvertedForm] = useState(invertedDefaults)
-  const [ballAndBeamForm, setBallAndBeamForm] = useState(ballAndBeamDefaults)
-  const [invertedData, setInvertedData] = useState<SimulationDataPoint[]>([])
-  const [ballAndBeamData, setBallAndBeamData] = useState<SimulationDataPoint[]>([])
-  const [invertedDt, setInvertedDt] = useState(invertedDefaults.dt)
-  const [ballAndBeamDt, setBallAndBeamDt] = useState(ballAndBeamDefaults.dt)
-  const [loadingSimulation, setLoadingSimulation] = useState<SimulationKind | null>(null)
-  const [simulationErrors, setSimulationErrors] = useState<Record<SimulationKind, string | null>>({
-    inverted: null,
-    ball: null,
-  })
-
   const apiRoot = useMemo(() => apiBaseUrl.replace(/\/$/, ''), [apiBaseUrl])
 
-  async function readJsonResponse(response: Response) {
-    try {
-      return await response.json()
-    } catch {
-      return null
-    }
-  }
+  const inverted = useSimulationForm({
+    endpoint: 'inverted-pendulum',
+    defaults: invertedDefaults,
+    apiRoot,
+    apiKey,
+    anonToken,
+  })
 
-  async function runSimulation(endpoint: string, payload: NumericForm): Promise<SimulationResponse> {
-    const response = await fetch(`${apiRoot}/api/simulations/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-        'X-ANON-TOKEN': anonToken,
-      },
-      credentials: 'include',
-      body: JSON.stringify(payload),
-    })
+  const ball = useSimulationForm({
+    endpoint: 'ball-and-beam',
+    defaults: ballAndBeamDefaults,
+    apiRoot,
+    apiKey,
+    anonToken,
+  })
 
-    const data = await readJsonResponse(response)
-
-    if (!response.ok) {
-      const errorData = data as ApiErrorResponse | null
-      throw new Error(errorData?.message ?? t('simulationRequestFailed'))
-    }
-
-    if (!data) {
-      throw new Error(t('cannotConnect'))
-    }
-
-    return data as SimulationResponse
-  }
-
-  async function runInvertedPendulum() {
-    setLoadingSimulation('inverted')
-    setSimulationErrors((current) => ({ ...current, inverted: null }))
-
-    try {
-      const data = await runSimulation('inverted-pendulum', invertedForm)
-      setInvertedData(data.series)
-      setInvertedDt(data.config.dt)
-    } catch (error) {
-      setSimulationErrors((current) => ({
-        ...current,
-        inverted: error instanceof Error ? error.message : t('simulationRequestFailed'),
-      }))
-    } finally {
-      setLoadingSimulation(null)
-    }
-  }
-
-  async function runBallAndBeam() {
-    setLoadingSimulation('ball')
-    setSimulationErrors((current) => ({ ...current, ball: null }))
-
-    try {
-      const data = await runSimulation('ball-and-beam', ballAndBeamForm)
-      setBallAndBeamData(data.series)
-      setBallAndBeamDt(data.config.dt)
-    } catch (error) {
-      setSimulationErrors((current) => ({
-        ...current,
-        ball: error instanceof Error ? error.message : t('simulationRequestFailed'),
-      }))
-    } finally {
-      setLoadingSimulation(null)
-    }
-  }
+  const anyLoading = inverted.isLoading || ball.isLoading
 
   return (
     <Card className="bg-[#1d1d1f] text-white shadow-[0_0_0_1px_rgba(40,40,40,0.8)]">
@@ -241,17 +164,17 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
           <TabsContent value="inverted-pendulum" className="space-y-4">
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <NumberField id="ip-duration" label="Duration (s)" value={invertedForm.duration} onChange={(value) => setInvertedForm({ ...invertedForm, duration: value })} />
-                <NumberField id="ip-dt" label="dt (s)" value={invertedForm.dt} step={0.001} onChange={(value) => setInvertedForm({ ...invertedForm, dt: value })} />
-                <NumberField id="ip-reference" label="Reference x (m)" value={invertedForm.reference} onChange={(value) => setInvertedForm({ ...invertedForm, reference: value })} />
-                <NumberField id="ip-initial-x" label="Initial x (m)" value={invertedForm.initial_x} onChange={(value) => setInvertedForm({ ...invertedForm, initial_x: value })} />
-                <NumberField id="ip-initial-v" label="Initial v (m/s)" value={invertedForm.initial_v} onChange={(value) => setInvertedForm({ ...invertedForm, initial_v: value })} />
-                <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={invertedForm.initial_theta} onChange={(value) => setInvertedForm({ ...invertedForm, initial_theta: value })} />
-                <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
+                <NumberField id="ip-duration" label="Duration (s)" value={inverted.form.duration} onChange={(v) => inverted.setForm({ ...inverted.form, duration: v })} />
+                <NumberField id="ip-dt" label="dt (s)" value={inverted.form.dt} step={0.001} onChange={(v) => inverted.setForm({ ...inverted.form, dt: v })} />
+                <NumberField id="ip-reference" label="Reference x (m)" value={inverted.form.reference} onChange={(v) => inverted.setForm({ ...inverted.form, reference: v })} />
+                <NumberField id="ip-initial-x" label="Initial x (m)" value={inverted.form.initial_x} onChange={(v) => inverted.setForm({ ...inverted.form, initial_x: v })} />
+                <NumberField id="ip-initial-v" label="Initial v (m/s)" value={inverted.form.initial_v} onChange={(v) => inverted.setForm({ ...inverted.form, initial_v: v })} />
+                <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={inverted.form.initial_theta} onChange={(v) => inverted.setForm({ ...inverted.form, initial_theta: v })} />
+                <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={inverted.form.initial_omega} onChange={(v) => inverted.setForm({ ...inverted.form, initial_omega: v })} />
               </div>
               <div className="flex items-end lg:justify-end">
-                <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
-                  {loadingSimulation === 'inverted' ? (
+                <Button onClick={() => void inverted.run()} disabled={anyLoading} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
+                  {inverted.isLoading ? (
                     <>
                       <LoaderCircle className="shrink-0 animate-spin" />
                       {t('runningInvertedPendulum')}
@@ -262,16 +185,16 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 </Button>
               </div>
             </div>
-            {simulationErrors.inverted ? (
+            {inverted.error ? (
               <Alert variant="destructive">
-                <AlertDescription>{simulationErrors.inverted}</AlertDescription>
+                <AlertDescription>{inverted.error}</AlertDescription>
               </Alert>
             ) : null}
-            {invertedData.length > 0 ? (
+            {inverted.data.length > 0 ? (
               <SimulationPanel
                 kind="inverted-pendulum"
-                data={invertedData}
-                dt={invertedDt}
+                data={inverted.data}
+                dt={inverted.dt}
                 chartGroups={invertedChartGroups}
               />
             ) : (
@@ -282,17 +205,17 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
           <TabsContent value="ball-and-beam" className="space-y-4">
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <NumberField id="bb-duration" label="Duration (s)" value={ballAndBeamForm.duration} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, duration: value })} />
-                <NumberField id="bb-dt" label="dt (s)" value={ballAndBeamForm.dt} step={0.001} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, dt: value })} />
-                <NumberField id="bb-reference" label="Reference r (m)" value={ballAndBeamForm.reference} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, reference: value })} />
-                <NumberField id="bb-initial-r" label="Initial r (m)" value={ballAndBeamForm.initial_r} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r: value })} />
-                <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ballAndBeamForm.initial_r_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_r_dot: value })} />
-                <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ballAndBeamForm.initial_alpha} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha: value })} />
-                <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
+                <NumberField id="bb-duration" label="Duration (s)" value={ball.form.duration} onChange={(v) => ball.setForm({ ...ball.form, duration: v })} />
+                <NumberField id="bb-dt" label="dt (s)" value={ball.form.dt} step={0.001} onChange={(v) => ball.setForm({ ...ball.form, dt: v })} />
+                <NumberField id="bb-reference" label="Reference r (m)" value={ball.form.reference} onChange={(v) => ball.setForm({ ...ball.form, reference: v })} />
+                <NumberField id="bb-initial-r" label="Initial r (m)" value={ball.form.initial_r} onChange={(v) => ball.setForm({ ...ball.form, initial_r: v })} />
+                <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ball.form.initial_r_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_r_dot: v })} />
+                <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ball.form.initial_alpha} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha: v })} />
+                <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ball.form.initial_alpha_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha_dot: v })} />
               </div>
               <div className="flex items-end lg:justify-end">
-                <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
-                  {loadingSimulation === 'ball' ? (
+                <Button onClick={() => void ball.run()} disabled={anyLoading} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
+                  {ball.isLoading ? (
                     <>
                       <LoaderCircle className="shrink-0 animate-spin" />
                       {t('runningBallAndBeam')}
@@ -303,16 +226,16 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 </Button>
               </div>
             </div>
-            {simulationErrors.ball ? (
+            {ball.error ? (
               <Alert variant="destructive">
-                <AlertDescription>{simulationErrors.ball}</AlertDescription>
+                <AlertDescription>{ball.error}</AlertDescription>
               </Alert>
             ) : null}
-            {ballAndBeamData.length > 0 ? (
+            {ball.data.length > 0 ? (
               <SimulationPanel
                 kind="ball-and-beam"
-                data={ballAndBeamData}
-                dt={ballAndBeamDt}
+                data={ball.data}
+                dt={ball.dt}
                 chartGroups={ballAndBeamChartGroups}
                 beamLength={1}
               />

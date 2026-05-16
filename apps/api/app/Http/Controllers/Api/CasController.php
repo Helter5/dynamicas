@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CasUserState;
+use App\Services\AnonTokenResolver;
 use App\Services\ApiRequestLogger;
 use App\Services\CasEvaluatorService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class CasController extends Controller
     public function __construct(
         private readonly CasEvaluatorService $casEvaluatorService,
         private readonly ApiRequestLogger $apiRequestLogger,
+        private readonly AnonTokenResolver $anonTokenResolver,
     ) {}
 
     public function eval(Request $request): JsonResponse
@@ -57,6 +59,14 @@ class CasController extends Controller
         $composedScript = $state->script === ''
             ? $command
             : $state->script."\n".$command;
+
+        $maxBytes = (int) config('cas.max_script_bytes', 50000);
+        if (strlen($composedScript) > $maxBytes) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'CAS session script limit reached. Reset state to continue.',
+            ], 422);
+        }
 
         try {
             $result = $this->casEvaluatorService->evaluate($composedScript);
@@ -120,12 +130,6 @@ class CasController extends Controller
 
     private function resolveAnonToken(Request $request): string
     {
-        $token = $request->cookie('anon_token') ?: $request->header('X-ANON-TOKEN');
-
-        if (is_string($token) && $token !== '') {
-            return $token;
-        }
-
-        return hash('sha256', ($request->ip() ?? '0.0.0.0')."|".$request->userAgent());
+        return $this->anonTokenResolver->resolve($request);
     }
 }

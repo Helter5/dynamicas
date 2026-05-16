@@ -10,10 +10,10 @@ class ApiCors
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedOrigins = [
-            'http://localhost:5173',
-            'http://127.0.0.1:5173',
-        ];
+        $allowedOrigins = array_filter(
+            array_map('trim', explode(',', (string) env('ALLOWED_ORIGINS', 'http://localhost:5173'))),
+            fn (string $o) => $o !== '',
+        );
 
         $origin = (string) $request->headers->get('Origin', '');
         $allowOrigin = in_array($origin, $allowedOrigins, true)

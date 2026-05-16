@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Symfony\Component\Yaml\Yaml;
 
-class DocumentationController
+class DocumentationController extends Controller
 {
     private function loadSpec(): array
     {

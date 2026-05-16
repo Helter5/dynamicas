@@ -1,6 +1,7 @@
 import { Pause, Play, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { useSimulationPlayback } from '@/hooks/useSimulationPlayback'
 import { BallAndBeamCanvas, type BallAndBeamDataPoint } from './BallAndBeamCanvas'
 import { InvertedPendulumCanvas, type InvertedPendulumDataPoint } from './InvertedPendulumCanvas'
@@ -51,19 +52,21 @@ export function SimulationPanel({
           <CardTitle className="text-base">Animation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {kind === 'inverted-pendulum' ? (
-            <InvertedPendulumCanvas
-              point={playback.currentPoint as InvertedPendulumDataPoint | null}
-              pendulumLength={pendulumLength}
-              className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
-            />
-          ) : (
-            <BallAndBeamCanvas
-              point={playback.currentPoint as BallAndBeamDataPoint | null}
-              beamLength={beamLength}
-              className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
-            />
-          )}
+          <ErrorBoundary>
+            {kind === 'inverted-pendulum' ? (
+              <InvertedPendulumCanvas
+                point={playback.currentPoint as InvertedPendulumDataPoint | null}
+                pendulumLength={pendulumLength}
+                className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
+              />
+            ) : (
+              <BallAndBeamCanvas
+                point={playback.currentPoint as BallAndBeamDataPoint | null}
+                beamLength={beamLength}
+                className="h-52 w-full rounded-[20px] bg-[#f5f5f7] shadow-[0_0_0_1px_rgba(180,180,180,0.3)]"
+              />
+            )}
+          </ErrorBoundary>
 
           {/* Playback controls */}
           <div className="space-y-2 rounded-[20px] bg-[#f5f5f7] p-3 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">

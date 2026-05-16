@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { readJsonResponse } from '@/lib/api'
 import { useCommandHistory } from '@/hooks/useCommandHistory'
 
 type EvalResponse = {
@@ -63,14 +64,6 @@ export function CommandConsolePage({
   const resetStateUrl = useMemo(() => {
     return `${apiBaseUrl.replace(/\/$/, '')}/api/cas/state`
   }, [apiBaseUrl])
-
-  async function readJsonResponse(response: Response) {
-    try {
-      return await response.json()
-    } catch {
-      return null
-    }
-  }
 
   function focusCommandTextarea() {
     window.requestAnimationFrame(() => {

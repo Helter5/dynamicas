@@ -4,13 +4,16 @@ namespace App\Services;
 
 use App\Models\SimulationUsage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class SimulationUsageTracker
 {
+    public function __construct(
+        private readonly AnonTokenResolver $anonTokenResolver,
+    ) {}
+
     public function record(Request $request, string $simulation): string
     {
-        $anonToken = $this->resolveAnonToken($request);
+        $anonToken = $this->anonTokenResolver->resolve($request);
         $intervalSeconds = (int) config('cas.simulation_stats_interval_seconds', 600);
         $latestUse = SimulationUsage::query()
             ->where('simulation', $simulation)
@@ -30,17 +33,6 @@ class SimulationUsageTracker
         }
 
         return $anonToken;
-    }
-
-    private function resolveAnonToken(Request $request): string
-    {
-        $token = $request->cookie('anon_token') ?: $request->header('X-ANON-TOKEN');
-
-        if (is_string($token) && $token !== '') {
-            return $token;
-        }
-
-        return (string) Str::uuid();
     }
 
     /**
