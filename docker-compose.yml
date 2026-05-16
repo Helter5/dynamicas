@@ -3,17 +3,8 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    environment:
-      APP_ENV: ${APP_ENV:-local}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      API_KEY: ${API_KEY:?Set API_KEY in .env}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
-      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
-      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
-      CAS_DRIVER: ${CAS_DRIVER:-octave}
-      CAS_OCTAVE_BINARY: ${CAS_OCTAVE_BINARY:-octave-cli}
-      CAS_COOLDOWN_SECONDS: ${CAS_COOLDOWN_SECONDS:-1}
+    env_file:
+      - ./apps/api/.env
     ports:
       - "8000:8000"
 
@@ -23,12 +14,16 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - api
-    environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
-      VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://api:8000}
-      VITE_API_KEY: ${API_KEY:?Set API_KEY in .env}
-      VITE_ALLOWED_HOSTS: ${VITE_ALLOWED_HOSTS:-node56.webte.fei.stuba.sk}
-      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+    env_file:
+      - ./apps/api/.env
+    command: >
+      sh -lc 'export
+      VITE_API_KEY="$${VITE_API_KEY:-$${API_KEY}}"
+      VITE_API_BASE_URL="$${VITE_API_BASE_URL:-}"
+      VITE_API_PROXY_TARGET="$${VITE_API_PROXY_TARGET:-http://api:8000}"
+      VITE_ALLOWED_HOSTS="$${VITE_ALLOWED_HOSTS:-node56.webte.fei.stuba.sk}"
+      CHOKIDAR_USEPOLLING="$${CHOKIDAR_USEPOLLING:-true}";
+      npm run dev -- --host 0.0.0.0 --port 5173'
     ports:
       - "5173:5173"
     volumes:
