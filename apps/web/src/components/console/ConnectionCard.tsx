@@ -36,7 +36,7 @@ export function ConnectionCard({
           id="api-key"
           value={apiKey}
           onChange={(event) => onApiKeyChange(event.target.value)}
-          placeholder="local-smoke-key"
+          placeholder="API key from .env"
         />
       </div>
     </div>

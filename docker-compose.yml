@@ -4,15 +4,16 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile
     environment:
-      APP_ENV: local
-      APP_DEBUG: "false"
-      APP_URL: http://localhost:8000
-      API_KEY: local-smoke-key
-      DB_CONNECTION: sqlite
-      DB_DATABASE: /var/www/html/database/database.sqlite
-      CAS_DRIVER: octave
-      CAS_OCTAVE_BINARY: octave-cli
-      CAS_COOLDOWN_SECONDS: 1
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      API_KEY: ${API_KEY:?Set API_KEY in .env}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      CAS_DRIVER: ${CAS_DRIVER:-octave}
+      CAS_OCTAVE_BINARY: ${CAS_OCTAVE_BINARY:-octave-cli}
+      CAS_COOLDOWN_SECONDS: ${CAS_COOLDOWN_SECONDS:-1}
     ports:
       - "8000:8000"
 
@@ -23,10 +24,11 @@ services:
     depends_on:
       - api
     environment:
-      VITE_API_BASE_URL: ""
-      VITE_API_PROXY_TARGET: http://api:8000
-      VITE_API_KEY: local-smoke-key
-      CHOKIDAR_USEPOLLING: "true"
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+      VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://api:8000}
+      VITE_API_KEY: ${API_KEY:?Set API_KEY in .env}
+      VITE_ALLOWED_HOSTS: ${VITE_ALLOWED_HOSTS:-node56.webte.fei.stuba.sk}
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
     ports:
       - "5173:5173"
     volumes:
