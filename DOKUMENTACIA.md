@@ -1,144 +1,110 @@
-# Technická dokumentácia – CAS Konzola
+# Technická dokumentácia
 
-## Popis projektu
-
-Webová aplikácia pre spúšťanie CAS (Computer Algebra System) príkazov a riadiacich simulácií (Inverted Pendulum, Ball and Beam) v jednom prostredí. Používatelia sú anonymne identifikovaní cez cookie token. Štatistiky využívania animácií sú dostupné v admin sekcii.
-
----
-
-## Technológie
-
-| Vrstva    | Technológia                        |
-|-----------|------------------------------------|
-| Backend   | PHP 8.4, Laravel 11                |
-| Frontend  | React 19, TypeScript, Vite         |
-| Databáza  | SQLite                             |
-| CAS motor | GNU Octave (`octave-cli`)          |
-| Kontajner | Docker, Docker Compose             |
+**Projekt:** CAS Konzola  
+**URL:** https://node56.webte.fei.stuba.sk  
+**Repozitár:** https://github.com/Helter5/dynamicas
 
 ---
 
-## Požiadavky na server
+## Čo to robí
 
-- Docker >= 24
-- Docker Compose >= 2
-- Prístup na porty 8000 (API) a 5173 (frontend)
-- Outbound HTTP na `ip-api.com` (geolokácia, port 80) – voliteľné, zlyhanie je non-fatal
+Webová aplikácia s dvoma hlavnými funkciami:
+- spúšťanie CAS príkazov cez GNU Octave
+- spúšťanie riadiacich simulácií (Inverted Pendulum, Ball and Beam) s grafmi a 3D animáciou
+
+Používatelia sú anonymní, identifikovaní cookie tokenom. Štatistiky spustení sú v sekcii Štatistiky.
 
 ---
 
-## Nainštalované programy a knižnice
+## Stack
 
-### V Docker image `api` (Alpine Linux)
+- **Backend:** PHP 8.4, Laravel 11
+- **Frontend:** React 19, TypeScript, Vite
+- **Databáza:** SQLite
+- **CAS:** GNU Octave (`octave-cli`)
+- **Deployment:** Docker, Docker Compose
 
-Inštalované cez `apk`:
+---
 
-| Balík            | Účel                            |
-|------------------|---------------------------------|
-| `octave`         | CAS výpočty a simulácie         |
-| `git`, `unzip`   | Composer závislosti             |
-| `libzip-dev`     | PHP zip rozšírenie              |
-| `icu-dev`        | PHP intl rozšírenie             |
-| `oniguruma-dev`  | PHP mbstring rozšírenie         |
-| `sqlite-dev`     | PHP pdo_sqlite rozšírenie       |
-| `libpng-dev`, `libjpeg-turbo-dev`, `freetype-dev`, `libxml2-dev` | PHP gd rozšírenie |
+## Inštalované programy a knižnice
+
+Všetko beží v Docker kontajneroch. Na serveri nie je nič inštalované priamo.
+
+### API kontajner (`php:8.4-cli-alpine`)
+
+Systémové balíky nainštalované cez `apk`:
+
+```
+octave, git, unzip, libzip-dev, icu-dev, oniguruma-dev,
+sqlite-dev, libpng-dev, libjpeg-turbo-dev, freetype-dev, libxml2-dev
+```
 
 PHP rozšírenia: `pdo`, `pdo_sqlite`, `mbstring`, `intl`, `zip`, `gd`
 
-Composer (PHP balíky): viď `apps/api/composer.json`  
+PHP balíky (Composer): viď `apps/api/composer.json`
+
+### Web kontajner (`node:20-alpine`)
+
 npm balíky: viď `apps/web/package.json`
-
-### V Docker image `web` (Node 20 Alpine)
-
-Štandardné Node.js prostredie, žiadne dodatočné systémové balíky.
 
 ---
 
 ## Konfigurácia
 
-Všetky nastavenia sa definujú v jednom súbore: `apps/api/.env`  
-Šablóna: `apps/api/.env.example`
+Konfigurácia je v jednom súbore: `apps/api/.env` (šablóna: `apps/api/.env.example`)
 
-| Premenná                          | Popis                                                   | Default        |
-|-----------------------------------|---------------------------------------------------------|----------------|
-| `API_KEY`                         | Tajný kľúč pre autorizáciu API requestov               | –              |
-| `ALLOWED_ORIGINS`                 | CORS whitelist (čiarkou oddelené URL)                   | localhost:5173 |
-| `CAS_DRIVER`                      | `mock` (dummy odpovede) alebo `octave` (reálny výpočet) | `mock`         |
-| `CAS_OCTAVE_BINARY`               | Cesta k Octave binárke                                  | `octave-cli`   |
-| `CAS_TIMEOUT_SECONDS`             | Max čas behu Octave skriptu                             | `8`            |
-| `CAS_COOLDOWN_SECONDS`            | Cooldown medzi CAS requestmi na token                   | `10`           |
-| `CAS_MAX_SCRIPT_BYTES`            | Max veľkosť CAS skriptu                                 | `50000`        |
-| `SIMULATION_RATE_LIMIT`           | Max simulácií za okno (throttle)                        | `30`           |
-| `SIMULATION_STATS_INTERVAL_SECONDS` | Min interval pre zápis novej štatistiky (per token)  | `600`          |
-| `SIMULATION_DELAY_MS`             | Umelé oneskorenie simulácie v ms (debug)               | `0`            |
-| `VITE_API_BASE_URL`               | Verejná adresa API (z pohľadu browsera)                 | –              |
-| `VITE_API_PROXY_TARGET`           | Interná adresa API pre Vite proxy                       | `http://api:8000` |
-| `VITE_ALLOWED_HOSTS`              | Hostname na ktorom beží frontend                        | `node56.webte.fei.stuba.sk` |
+Povinné premenné:
 
----
+| Premenná | Popis |
+|----------|-------|
+| `APP_KEY` | Laravel šifrovací kľúč |
+| `API_KEY` | Kľúč pre autorizáciu API requestov |
+| `ALLOWED_ORIGINS` | CORS whitelist (čiarkou oddelené URL) |
+| `CAS_DRIVER` | `octave` pre reálne výpočty, `mock` pre testovanie |
+| `VITE_API_BASE_URL` | Verejná adresa API |
 
-## Databáza
+Voliteľné premenné:
 
-SQLite súbor sa vytvorí automaticky pri štarte kontajnera:
-
-```
-apps/api/database/database.sqlite
-```
-
-Schéma (DDL): `apps/api/database/schema/sqlite-schema.sql`
-
-Migrácie sa spúšťajú automaticky pri štarte (`php artisan migrate --force`).  
-Žiadne seed dáta nie sú potrebné – aplikácia funguje s prázdnou databázou.
+| Premenná | Default | Popis |
+|----------|---------|-------|
+| `CAS_OCTAVE_BINARY` | `octave-cli` | Cesta k Octave |
+| `CAS_TIMEOUT_SECONDS` | `8` | Max čas behu Octave skriptu |
+| `CAS_COOLDOWN_SECONDS` | `10` | Cooldown medzi CAS requestmi (per token) |
+| `CAS_MAX_SCRIPT_BYTES` | `50000` | Max veľkosť CAS session skriptu |
+| `SIMULATION_RATE_LIMIT` | `30` | Max simulácií za rate-limit okno |
+| `SIMULATION_STATS_INTERVAL_SECONDS` | `600` | Min interval zápisu štatistiky (per token) |
 
 ---
 
 ## Spustenie
 
 ```bash
-# 1. Skopíruj konfiguráciu
 cp apps/api/.env.example apps/api/.env
+# vyplň APP_KEY, API_KEY, ALLOWED_ORIGINS, CAS_DRIVER=octave, VITE_API_BASE_URL
 
-# 2. Nastav povinné premenné v apps/api/.env:
-#    APP_KEY=  (vygeneruj: docker run --rm php:8.4-cli php -r "echo 'base64:'.base64_encode(random_bytes(32));")
-#    API_KEY=  (ľubovoľný tajný reťazec)
-#    CAS_DRIVER=octave  (pre reálne výpočty)
-#    ALLOWED_ORIGINS=https://tvoja-domena.sk
-#    VITE_API_BASE_URL=https://tvoja-domena.sk:8000
-
-# 3. Spusti
 docker compose up --build -d
 ```
 
-Frontend beží na porte `5173`, API na porte `8000`.
+Frontend: port `5173`, API: port `8000`
+
+Databáza (SQLite) a migrácie sa spustia automaticky pri štarte kontajnera.  
+Schéma: `apps/api/database/schema/schema-dump.sql`
 
 ---
 
-## Zmeny konfigurácie servera
+## Zmeny na serveri
 
-Na serveri `node56.webte.fei.stuba.sk` neboli vykonané žiadne priame zmeny mimo Docker kontajnerov. Všetko beží v izolovaných kontajneroch.
-
-Jediná požiadavka na server: otvorené porty 5173 a 8000.
+Žiadne priame zmeny na serveri. Iba otvorené porty 5173 a 8000.
 
 ---
 
 ## Rozdelenie úloh
 
-| Úloha                                          | Riešiteľ         |
-|------------------------------------------------|------------------|
-| Backend API (Laravel) – CAS, simulácie, logy  | [Meno]           |
-| Frontend (React) – UI, grafy, animácie        | [Meno]           |
-| Docker konfigurácia a deployment               | [Meno]           |
-| Štatistiky a geolokácia                        | [Meno]           |
+| Úloha | Riešiteľ |
+|-------|----------|
+| Backend – CAS, simulácie, API, databáza | [Gabriel Kanocz, Samuel Bagín] |
+| Frontend – UI, grafy, 3D animácie | [Samuel Bagín, Gabriel Kanocz] |
+| Docker, deployment, štatistiky | [Gabriel Kanocz] |
+| Video | [Samuel Bagín] |
 
 ---
-
-## Nesplnené úlohy
-
-Všetky požadované funkcionality boli implementované.
-
----
-
-## Adresa projektu
-
-- **Deployment:** https://node56.webte.fei.stuba.sk
-- **Repozitár:** [doplniť URL]
