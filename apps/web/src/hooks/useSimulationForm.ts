@@ -16,9 +16,12 @@ type ApiErrorResponse = {
   message?: string
 }
 
+type FieldConstraint = { min?: number; max?: number; label?: string }
+
 type Params = {
   endpoint: string
   defaults: NumericForm
+  constraints?: Record<string, FieldConstraint>
   apiRoot: string
   apiKey: string
   anonToken: string
@@ -77,6 +80,7 @@ function isSimulationResponse(value: unknown): value is SimulationResponse {
 export function useSimulationForm({
   endpoint,
   defaults,
+  constraints,
   apiRoot,
   apiKey,
   anonToken,
@@ -97,6 +101,16 @@ export function useSimulationForm({
 
       if (!payload) {
         throw new Error(t('invalidNumberFields'))
+      }
+
+      if (constraints) {
+        for (const [field, { min, max, label }] of Object.entries(constraints)) {
+          const val = payload[field]
+          if (val === undefined) continue
+          if ((min !== undefined && val < min) || (max !== undefined && val > max)) {
+            throw new Error(t('fieldOutOfRange', { field: label ?? field, min: min ?? '–', max: max ?? '–' }))
+          }
+        }
       }
 
       const requestUrl = `${apiRoot}/api/simulations/${endpoint}`

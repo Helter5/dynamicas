@@ -80,6 +80,16 @@ const invertedDefaults = {
   initial_omega: 0,
 }
 
+const invertedConstraints = {
+  duration:      { min: 0.5,   max: 60,   label: 'Duration' },
+  dt:            { min: 0.001, max: 0.2,  label: 'dt' },
+  reference:     { min: -10,   max: 10,   label: 'Reference x' },
+  initial_x:     { min: -10,   max: 10,   label: 'Initial x' },
+  initial_v:     { min: -20,   max: 20,   label: 'Initial v' },
+  initial_theta: { min: -1.57, max: 1.57, label: 'Initial theta' },
+  initial_omega: { min: -20,   max: 20,   label: 'Initial omega' },
+}
+
 const ballAndBeamDefaults = {
   duration: 5,
   dt: 0.01,
@@ -90,16 +100,28 @@ const ballAndBeamDefaults = {
   initial_alpha_dot: 0,
 }
 
+const ballConstraints = {
+  duration:           { min: 0.5,   max: 60,   label: 'Duration' },
+  dt:                 { min: 0.001, max: 0.2,  label: 'dt' },
+  reference:          { min: -2,    max: 2,    label: 'Reference r' },
+  initial_r:          { min: -2,    max: 2,    label: 'Initial r' },
+  initial_r_dot:      { min: -20,   max: 20,   label: 'Initial r_dot' },
+  initial_alpha:      { min: -1.57, max: 1.57, label: 'Initial alpha' },
+  initial_alpha_dot:  { min: -20,   max: 20,   label: 'Initial alpha_dot' },
+}
+
 function NumberField({
   id,
   label,
   value,
   onChange,
+  hint,
 }: {
   id: string
   label: string
   value: string
   onChange: (value: string) => void
+  hint?: string
 }) {
   return (
     <div className="grid gap-1.5">
@@ -112,6 +134,7 @@ function NumberField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
     </div>
   )
 }
@@ -131,6 +154,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
   const inverted = useSimulationForm({
     endpoint: 'inverted-pendulum',
     defaults: invertedDefaults,
+    constraints: invertedConstraints,
     apiRoot,
     apiKey,
     anonToken,
@@ -139,6 +163,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
   const ball = useSimulationForm({
     endpoint: 'ball-and-beam',
     defaults: ballAndBeamDefaults,
+    constraints: ballConstraints,
     apiRoot,
     apiKey,
     anonToken,
@@ -162,13 +187,13 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
           <TabsContent value="inverted-pendulum" className="space-y-4">
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <NumberField id="ip-duration" label="Duration (s)" value={inverted.form.duration} onChange={(v) => inverted.setForm({ ...inverted.form, duration: v })} />
-                <NumberField id="ip-dt" label="dt (s)" value={inverted.form.dt} onChange={(v) => inverted.setForm({ ...inverted.form, dt: v })} />
-                <NumberField id="ip-reference" label="Reference x (m)" value={inverted.form.reference} onChange={(v) => inverted.setForm({ ...inverted.form, reference: v })} />
-                <NumberField id="ip-initial-x" label="Initial x (m)" value={inverted.form.initial_x} onChange={(v) => inverted.setForm({ ...inverted.form, initial_x: v })} />
-                <NumberField id="ip-initial-v" label="Initial v (m/s)" value={inverted.form.initial_v} onChange={(v) => inverted.setForm({ ...inverted.form, initial_v: v })} />
-                <NumberField id="ip-initial-theta" label="Initial theta (rad)" value={inverted.form.initial_theta} onChange={(v) => inverted.setForm({ ...inverted.form, initial_theta: v })} />
-                <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={inverted.form.initial_omega} onChange={(v) => inverted.setForm({ ...inverted.form, initial_omega: v })} />
+                <NumberField id="ip-duration" label="Duration (s)" hint="0.5 – 60" value={inverted.form.duration} onChange={(v) => inverted.setForm({ ...inverted.form, duration: v })} />
+                <NumberField id="ip-dt" label="dt (s)" hint="0.001 – 0.2" value={inverted.form.dt} onChange={(v) => inverted.setForm({ ...inverted.form, dt: v })} />
+                <NumberField id="ip-reference" label="Reference x (m)" hint="-10 – 10" value={inverted.form.reference} onChange={(v) => inverted.setForm({ ...inverted.form, reference: v })} />
+                <NumberField id="ip-initial-x" label="Initial x (m)" hint="-10 – 10" value={inverted.form.initial_x} onChange={(v) => inverted.setForm({ ...inverted.form, initial_x: v })} />
+                <NumberField id="ip-initial-v" label="Initial v (m/s)" hint="-20 – 20" value={inverted.form.initial_v} onChange={(v) => inverted.setForm({ ...inverted.form, initial_v: v })} />
+                <NumberField id="ip-initial-theta" label="Initial theta (rad)" hint="-1.57 – 1.57" value={inverted.form.initial_theta} onChange={(v) => inverted.setForm({ ...inverted.form, initial_theta: v })} />
+                <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" hint="-20 – 20" value={inverted.form.initial_omega} onChange={(v) => inverted.setForm({ ...inverted.form, initial_omega: v })} />
               </div>
               <div className="flex items-end lg:justify-end">
                 <Button onClick={() => void inverted.run()} disabled={anyLoading} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
@@ -198,13 +223,13 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
           <TabsContent value="ball-and-beam" className="space-y-4">
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <NumberField id="bb-duration" label="Duration (s)" value={ball.form.duration} onChange={(v) => ball.setForm({ ...ball.form, duration: v })} />
-                <NumberField id="bb-dt" label="dt (s)" value={ball.form.dt} onChange={(v) => ball.setForm({ ...ball.form, dt: v })} />
-                <NumberField id="bb-reference" label="Reference r (m)" value={ball.form.reference} onChange={(v) => ball.setForm({ ...ball.form, reference: v })} />
-                <NumberField id="bb-initial-r" label="Initial r (m)" value={ball.form.initial_r} onChange={(v) => ball.setForm({ ...ball.form, initial_r: v })} />
-                <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ball.form.initial_r_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_r_dot: v })} />
-                <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" value={ball.form.initial_alpha} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha: v })} />
-                <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ball.form.initial_alpha_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha_dot: v })} />
+                <NumberField id="bb-duration" label="Duration (s)" hint="0.5 – 60" value={ball.form.duration} onChange={(v) => ball.setForm({ ...ball.form, duration: v })} />
+                <NumberField id="bb-dt" label="dt (s)" hint="0.001 – 0.2" value={ball.form.dt} onChange={(v) => ball.setForm({ ...ball.form, dt: v })} />
+                <NumberField id="bb-reference" label="Reference r (m)" hint="-2 – 2" value={ball.form.reference} onChange={(v) => ball.setForm({ ...ball.form, reference: v })} />
+                <NumberField id="bb-initial-r" label="Initial r (m)" hint="-2 – 2" value={ball.form.initial_r} onChange={(v) => ball.setForm({ ...ball.form, initial_r: v })} />
+                <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" hint="-20 – 20" value={ball.form.initial_r_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_r_dot: v })} />
+                <NumberField id="bb-initial-alpha" label="Initial alpha (rad)" hint="-1.57 – 1.57" value={ball.form.initial_alpha} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha: v })} />
+                <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" hint="-20 – 20" value={ball.form.initial_alpha_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_alpha_dot: v })} />
               </div>
               <div className="flex items-end lg:justify-end">
                 <Button onClick={() => void ball.run()} disabled={anyLoading} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
