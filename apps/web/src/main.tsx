@@ -7,7 +7,7 @@ import './i18n'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>,
