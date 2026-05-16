@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { Download, LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -45,6 +45,22 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
   useEffect(() => {
     void loadSummary()
   }, [apiRoot, apiKey])
+
+  async function downloadCsv() {
+    const response = await fetch(`${apiRoot}/api/logs/export.csv`, {
+      headers: { 'X-API-KEY': apiKey },
+    })
+
+    if (!response.ok) return
+
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `api-logs-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   async function loadSummary() {
     setIsLoading(true)
@@ -107,7 +123,19 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
     <Card className="bg-[#1d1d1f] text-white shadow-[0_0_0_1px_rgba(40,40,40,0.8)]">
       <CardHeader className="gap-2">
         <p className="text-sm font-semibold text-[#2997ff]">{t('statsEyebrow')}</p>
-        <CardTitle className="text-[40px] leading-[44px] tracking-normal text-white">{t('statsNav')}</CardTitle>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <CardTitle className="text-[40px] leading-[44px] tracking-normal text-white">{t('statsNav')}</CardTitle>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => void downloadCsv()}
+            className="h-8 gap-2 rounded-full bg-white/10 px-3 text-xs text-white hover:bg-white/20 hover:text-white"
+          >
+            <Download className="size-3.5" />
+            {t('exportCsv')}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="grid gap-4">
         {error ? (
@@ -140,7 +168,7 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
 
               {selectedSimulation === item.simulation ? (
                 <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[560px] text-left text-sm">
+                  <table className="w-full min-w-[360px] text-left text-sm">
                     <thead className="text-[#6e6e73]">
                       <tr>
                         <th className="py-2 pr-3 font-medium">{t('statsTime')}</th>
@@ -153,7 +181,7 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
                         <tr key={`${detail.anon_token}-${detail.used_at}`} className="border-t border-black/10">
                           <td className="py-2 pr-3">{new Date(detail.used_at).toLocaleString()}</td>
                           <td className="py-2 pr-3">{[detail.city, detail.country].filter(Boolean).join(', ') || t('unknownLocation')}</td>
-                          <td className="py-2 pr-3 font-mono">{detail.anon_token}</td>
+                          <td className="py-2 pr-3 font-mono text-xs" title={detail.anon_token}>{detail.anon_token.slice(0, 8)}…</td>
                         </tr>
                       ))}
                     </tbody>

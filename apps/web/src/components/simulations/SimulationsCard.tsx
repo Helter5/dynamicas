@@ -233,9 +233,9 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="inverted-pendulum" className="gap-5">
-          <TabsList className="w-full bg-white/10 text-white/64 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-            <TabsTrigger value="inverted-pendulum" className="flex-1">Inverted Pendulum</TabsTrigger>
-            <TabsTrigger value="ball-and-beam" className="flex-1">Ball and Beam</TabsTrigger>
+          <TabsList className="h-auto w-full bg-white/10 text-white/64 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+            <TabsTrigger value="inverted-pendulum" className="flex-1 whitespace-normal py-2 text-center leading-tight">Inverted Pendulum</TabsTrigger>
+            <TabsTrigger value="ball-and-beam" className="flex-1 whitespace-normal py-2 text-center leading-tight">Ball and Beam</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inverted-pendulum" className="space-y-4">
@@ -250,10 +250,10 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 <NumberField id="ip-initial-omega" label="Initial omega (rad/s)" value={invertedForm.initial_omega} onChange={(value) => setInvertedForm({ ...invertedForm, initial_omega: value })} />
               </div>
               <div className="flex items-end lg:justify-end">
-                <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="w-full lg:w-auto lg:min-w-48">
+                <Button onClick={runInvertedPendulum} disabled={loadingSimulation != null} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
                   {loadingSimulation === 'inverted' ? (
                     <>
-                      <LoaderCircle className="animate-spin" />
+                      <LoaderCircle className="shrink-0 animate-spin" />
                       {t('runningInvertedPendulum')}
                     </>
                   ) : (
@@ -291,10 +291,10 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 <NumberField id="bb-initial-alpha-dot" label="Initial alpha_dot (rad/s)" value={ballAndBeamForm.initial_alpha_dot} onChange={(value) => setBallAndBeamForm({ ...ballAndBeamForm, initial_alpha_dot: value })} />
               </div>
               <div className="flex items-end lg:justify-end">
-                <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="w-full lg:w-auto lg:min-w-48">
+                <Button onClick={runBallAndBeam} disabled={loadingSimulation != null} className="h-auto w-full whitespace-normal py-2 lg:w-auto lg:min-w-48">
                   {loadingSimulation === 'ball' ? (
                     <>
-                      <LoaderCircle className="animate-spin" />
+                      <LoaderCircle className="shrink-0 animate-spin" />
                       {t('runningBallAndBeam')}
                     </>
                   ) : (

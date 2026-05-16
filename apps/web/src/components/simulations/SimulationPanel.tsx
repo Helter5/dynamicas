@@ -66,28 +66,32 @@ export function SimulationPanel({
           )}
 
           {/* Playback controls */}
-          <div className="flex items-center gap-2 rounded-full bg-[#f5f5f7] p-2 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
-            <Button size="icon" variant="outline" onClick={togglePlayPause} aria-label={playback.isPlaying ? 'Pause' : 'Play'}>
-              {playback.isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
-            </Button>
-            <Button size="icon" variant="outline" onClick={playback.reset} aria-label="Reset">
-              <RotateCcw className="size-4" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={cycleSpeed} className="w-14 tabular-nums">
-              {playback.speed}×
-            </Button>
-            <input
-              type="range"
-              min={0}
-              max={data.length - 1}
-              value={playback.currentIndex}
-              onChange={(e) => playback.seekTo(Number(e.target.value))}
-              className="h-2 flex-1 cursor-pointer accent-primary"
-              aria-label="Seek"
-            />
-            <span className="w-16 rounded-full bg-card px-2 py-1 text-right font-mono text-xs text-muted-foreground tabular-nums shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
-              {(playback.currentPoint?.t ?? 0).toFixed(2)}s
-            </span>
+          <div className="space-y-2 rounded-[20px] bg-[#f5f5f7] p-3 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
+            <div className="flex items-center gap-2">
+              <Button size="icon" variant="outline" onClick={togglePlayPause} aria-label={playback.isPlaying ? 'Pause' : 'Play'}>
+                {playback.isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+              </Button>
+              <Button size="icon" variant="outline" onClick={playback.reset} aria-label="Reset">
+                <RotateCcw className="size-4" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={cycleSpeed} className="w-14 tabular-nums">
+                {playback.speed}×
+              </Button>
+            </div>
+            <div className="flex min-w-0 items-center gap-2 py-1">
+              <input
+                type="range"
+                min={0}
+                max={data.length - 1}
+                value={playback.currentIndex}
+                onChange={(e) => playback.seekTo(Number(e.target.value))}
+                className="h-2 min-w-0 flex-1 cursor-pointer accent-primary"
+                aria-label="Seek"
+              />
+              <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                {(playback.currentPoint?.t ?? 0).toFixed(2)}s
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>

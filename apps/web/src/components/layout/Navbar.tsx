@@ -1,4 +1,5 @@
-import { Settings } from 'lucide-react'
+import { Menu, Settings, X } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,20 +37,26 @@ export function Navbar({
   onAnonTokenChange,
   onLanguageChange,
 }: Props) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
   const navItems = [
     { to: `/${lang}`, label: t('homeNav'), end: true },
     { to: `/${lang}/simulations`, label: t('simulationsNav'), end: false },
     { to: `/${lang}/console`, label: t('consoleNav'), end: false },
     { to: `/${lang}/stats`, label: t('statsNav'), end: false },
+    { to: `/${lang}/docs`, label: t('docsNav'), end: false },
   ]
 
   return (
-    <nav className="sticky top-0 z-40 h-[52px] w-full border-b border-black/10 bg-[#f5f5f7]/75 backdrop-blur-xl">
-      <div className="mx-auto grid h-full w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 md:px-8">
+    <nav className="sticky top-0 z-40 w-full border-b border-black/10 bg-[#f5f5f7]/75 backdrop-blur-xl">
+      {/* Main bar */}
+      <div className="mx-auto grid min-h-[52px] w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-0 px-4 py-2 md:px-8">
         <h1 className="text-[21px] font-semibold tracking-[0.011em]">
           {t('title')}
         </h1>
-        <div className="flex min-w-0 items-center justify-center gap-5 overflow-x-auto">
+
+        {/* Desktop nav — hidden on mobile */}
+        <div className="hidden min-w-0 items-center justify-center gap-5 md:flex">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -68,6 +75,7 @@ export function Navbar({
             </NavLink>
           ))}
         </div>
+
         <div className="flex items-center justify-end gap-2">
           <Dialog>
             <DialogTrigger
@@ -93,6 +101,7 @@ export function Navbar({
               />
             </DialogContent>
           </Dialog>
+
           <div className="flex rounded-full bg-white p-1 shadow-[0_0_0_1px_rgba(180,180,180,0.3)]">
             <Button
               type="button"
@@ -115,8 +124,44 @@ export function Navbar({
               EN
             </Button>
           </div>
+
+          {/* Hamburger — visible only on mobile */}
+          <button
+            type="button"
+            aria-label="Menu"
+            onClick={() => setMobileOpen((prev) => !prev)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1d1d1f]/85 text-white transition hover:bg-[#1d1d1f] md:hidden"
+          >
+            {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile dropdown */}
+      {mobileOpen && (
+        <div className="border-t border-black/10 bg-[#f5f5f7]/95 px-4 py-3 md:hidden">
+          <div className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors',
+                    isActive
+                      ? 'bg-black/[0.06] text-[#1d1d1f]'
+                      : 'text-[#1d1d1f]/60 hover:bg-black/[0.04] hover:text-[#1d1d1f]',
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

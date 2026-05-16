@@ -1,0 +1,310 @@
+openapi: 3.1.0
+info:
+  title: Dynamicas API
+  version: 1.0.0
+  description: REST API for CAS commands, dynamic-system simulations, logs, and usage statistics.
+servers:
+  - url: http://localhost:8000/api
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    AnonTokenHeader:
+      name: X-ANON-TOKEN
+      in: header
+      required: false
+      schema:
+        type: string
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+    CasEvalRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          maxLength: 5000
+          example: a=1+1
+        source:
+          type: string
+          example: form
+    CasEvalResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            mock:
+              type: boolean
+            output:
+              type: string
+    SimulationPoint:
+      type: object
+      additionalProperties:
+        type: number
+      properties:
+        t:
+          type: number
+        reference:
+          type: number
+        u:
+          type: number
+    SimulationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        simulation:
+          type: string
+        config:
+          type: object
+          properties:
+            duration:
+              type: number
+            dt:
+              type: number
+            steps:
+              type: integer
+            reference:
+              type: number
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimulationPoint'
+    InvertedPendulumRequest:
+      type: object
+      properties:
+        duration:
+          type: number
+          minimum: 0.5
+          maximum: 60
+          default: 5
+        dt:
+          type: number
+          minimum: 0.001
+          maximum: 0.2
+          default: 0.01
+        reference:
+          type: number
+          minimum: -10
+          maximum: 10
+          default: 0.2
+        initial_x:
+          type: number
+        initial_v:
+          type: number
+        initial_theta:
+          type: number
+        initial_omega:
+          type: number
+    BallAndBeamRequest:
+      type: object
+      properties:
+        duration:
+          type: number
+          minimum: 0.5
+          maximum: 60
+          default: 5
+        dt:
+          type: number
+          minimum: 0.001
+          maximum: 0.2
+          default: 0.01
+        reference:
+          type: number
+          minimum: -2
+          maximum: 2
+          default: 0.25
+        initial_r:
+          type: number
+        initial_r_dot:
+          type: number
+        initial_alpha:
+          type: number
+        initial_alpha_dot:
+          type: number
+    StatsSummaryResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        interval_seconds:
+          type: integer
+          example: 600
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              simulation:
+                type: string
+              total:
+                type: integer
+    StatsDetailsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        simulation:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              simulation:
+                type: string
+              anon_token:
+                type: string
+                description: Shortened anonymous token.
+              city:
+                type:
+                  - string
+                  - 'null'
+              country:
+                type:
+                  - string
+                  - 'null'
+              used_at:
+                type: string
+                format: date-time
+paths:
+  /health:
+    get:
+      security: []
+      summary: Health check
+      responses:
+        '200':
+          description: API is reachable.
+  /cas/eval:
+    post:
+      summary: Evaluate a CAS command
+      parameters:
+        - $ref: '#/components/parameters/AnonTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CasEvalRequest'
+      responses:
+        '200':
+          description: Command executed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CasEvalResponse'
+        '401':
+          description: Missing or invalid API key.
+        '429':
+          description: CAS cooldown is active.
+        '500':
+          description: CAS execution failed.
+  /cas/state:
+    delete:
+      summary: Reset persisted CAS state for an anonymous user
+      parameters:
+        - $ref: '#/components/parameters/AnonTokenHeader'
+      responses:
+        '200':
+          description: State reset completed.
+  /simulations/inverted-pendulum:
+    post:
+      summary: Run inverted pendulum simulation
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvertedPendulumRequest'
+      responses:
+        '200':
+          description: Simulation series returned.
+          headers:
+            Set-Cookie:
+              description: Anonymous simulation token cookie.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResponse'
+  /simulations/ball-and-beam:
+    post:
+      summary: Run ball and beam simulation
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BallAndBeamRequest'
+      responses:
+        '200':
+          description: Simulation series returned.
+          headers:
+            Set-Cookie:
+              description: Anonymous simulation token cookie.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResponse'
+  /logs/export.csv:
+    get:
+      summary: Export API logs to CSV
+      responses:
+        '200':
+          description: CSV stream.
+          content:
+            text/csv:
+              schema:
+                type: string
+  /stats/simulations:
+    get:
+      summary: Get simulation usage counts
+      responses:
+        '200':
+          description: Usage summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsSummaryResponse'
+  /stats/simulations/{simulation}:
+    get:
+      summary: Get simulation usage detail rows
+      parameters:
+        - name: simulation
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - inverted_pendulum
+              - ball_and_beam
+      responses:
+        '200':
+          description: Usage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsDetailsResponse'

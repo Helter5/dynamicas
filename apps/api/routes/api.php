@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CasController;
+use App\Http\Controllers\Api\DocumentationController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\SimulationController;
 use App\Http\Controllers\Api\StatsController;
@@ -19,6 +20,9 @@ Route::middleware('api.cors')->group(function () {
             'timestamp' => now()->toIso8601String(),
         ]);
     });
+
+    Route::get('/docs/openapi.json', [DocumentationController::class, 'openapi']);
+    Route::get('/docs/pdf', [DocumentationController::class, 'downloadPdf']);
 
     Route::middleware('api.key')->group(function () {
         Route::post('/cas/eval', [CasController::class, 'eval']);

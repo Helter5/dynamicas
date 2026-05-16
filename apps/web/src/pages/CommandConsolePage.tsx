@@ -1,8 +1,8 @@
 import { type KeyboardEvent, useMemo, useRef, useState } from 'react'
-import { CheckCircle2, LoaderCircle } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { CommandHistoryPanel } from '@/components/console/CommandHistoryPanel'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { SyntaxTextarea } from '@/components/console/SyntaxTextarea'
 import {
@@ -27,12 +27,6 @@ type EvalResponse = {
   }
 }
 
-type Feedback = {
-  scope: 'cas' | 'reset'
-  variant: 'success' | 'error'
-  message: string
-}
-
 type Props = {
   apiBaseUrl: string
   apiKey: string
@@ -50,7 +44,6 @@ export function CommandConsolePage({
 
   const [command, setCommand] = useState('1+1')
   const [output, setOutput] = useState('')
-  const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isResettingState, setIsResettingState] = useState(false)
   const {
@@ -87,7 +80,6 @@ export function CommandConsolePage({
 
   function selectCommandFromHistory(nextCommand: string) {
     setCommand(nextCommand)
-    setFeedback(null)
     resetHistoryNavigation()
     historyDraftRef.current = null
     focusCommandTextarea()
@@ -144,7 +136,6 @@ export function CommandConsolePage({
 
   async function runCommand() {
     setIsLoading(true)
-    setFeedback(null)
 
     try {
       const response = await fetch(evalUrl, {
@@ -163,11 +154,7 @@ export function CommandConsolePage({
       const data = (await readJsonResponse(response)) as EvalResponse | null
 
       if (!data) {
-        setFeedback({
-          scope: 'cas',
-          variant: 'error',
-          message: t('cannotConnect'),
-        })
+        toast.error(t('cannotConnect'))
         return
       }
 
@@ -178,11 +165,7 @@ export function CommandConsolePage({
             ? t('casCooldown', { count: secondsRemaining })
             : data.message ?? t('requestFailed')
 
-        setFeedback({
-          scope: 'cas',
-          variant: 'error',
-          message,
-        })
+        toast.error(message)
         return
       }
 
@@ -190,17 +173,9 @@ export function CommandConsolePage({
       addToHistory(command)
       resetHistoryNavigation()
       historyDraftRef.current = null
-      setFeedback({
-        scope: 'cas',
-        variant: 'success',
-        message: t('commandRunSuccess'),
-      })
+      toast.success(t('commandRunSuccess'))
     } catch {
-      setFeedback({
-        scope: 'cas',
-        variant: 'error',
-        message: t('cannotConnect'),
-      })
+      toast.error(t('cannotConnect'))
     } finally {
       setIsLoading(false)
     }
@@ -208,7 +183,6 @@ export function CommandConsolePage({
 
   async function resetState() {
     setIsResettingState(true)
-    setFeedback(null)
 
     try {
       const response = await fetch(resetStateUrl, {
@@ -221,11 +195,7 @@ export function CommandConsolePage({
       })
 
       if (!response.ok) {
-        setFeedback({
-          scope: 'reset',
-          variant: 'error',
-          message: t('requestFailed'),
-        })
+        toast.error(t('requestFailed'))
         return
       }
 
@@ -233,17 +203,9 @@ export function CommandConsolePage({
       setCommand('')
       resetHistoryNavigation()
       historyDraftRef.current = null
-      setFeedback({
-        scope: 'reset',
-        variant: 'success',
-        message: t('stateResetSuccess'),
-      })
+      toast.success(t('stateResetSuccess'))
     } catch {
-      setFeedback({
-        scope: 'reset',
-        variant: 'error',
-        message: t('cannotConnect'),
-      })
+      toast.error(t('cannotConnect'))
     } finally {
       setIsResettingState(false)
     }
@@ -291,7 +253,6 @@ export function CommandConsolePage({
             onClick={() => {
               setCommand('')
               setOutput('')
-              setFeedback(null)
               resetHistoryNavigation()
               historyDraftRef.current = null
             }}
@@ -327,20 +288,6 @@ export function CommandConsolePage({
             className="border-white/10 bg-white/[0.06] font-mono text-sm leading-6 text-white placeholder:text-white/36 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] focus-visible:ring-[#2997ff]"
           />
         </div>
-
-        {feedback ? (
-          <Alert
-            variant={feedback.variant === 'error' ? 'destructive' : 'default'}
-            className={
-              feedback.variant === 'error'
-                ? 'border-[#ff453a]/30 bg-[#ff453a]/10 text-white'
-                : 'border-[#30d158]/25 bg-[#30d158]/10 text-white'
-            }
-          >
-            {feedback.variant === 'success' ? <CheckCircle2 /> : null}
-            <AlertDescription>{feedback.message}</AlertDescription>
-          </Alert>
-        ) : null}
 
         <CommandHistoryPanel
           t={t}

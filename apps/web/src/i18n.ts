@@ -14,6 +14,7 @@ const resources = {
       simulationsNav: 'Simulácie',
       consoleNav: 'Konzola',
       statsNav: 'Štatistiky',
+      docsNav: 'API',
       settings: 'Nastavenia',
       connection: 'Pripojenie',
       command: 'Príkaz',
@@ -50,6 +51,7 @@ const resources = {
       statsToken: 'Token',
       unknownLocation: 'Neznáme',
       noStatsYet: 'Zatiaľ nie je zaznamenané žiadne spustenie animácie.',
+      exportCsv: 'Exportovať CSV',
     },
   },
   en: {
@@ -64,6 +66,7 @@ const resources = {
       simulationsNav: 'Simulations',
       consoleNav: 'Console',
       statsNav: 'Stats',
+      docsNav: 'API',
       settings: 'Settings',
       connection: 'Connection',
       command: 'Command',
@@ -100,6 +103,7 @@ const resources = {
       statsToken: 'Token',
       unknownLocation: 'Unknown',
       noStatsYet: 'No animation run has been recorded yet.',
+      exportCsv: 'Export CSV',
     },
   },
 } as const

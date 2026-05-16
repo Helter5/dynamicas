@@ -10,9 +10,11 @@ import {
   useOutletContext,
   useParams,
 } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { CommandConsolePage } from '@/pages/CommandConsolePage'
+import { DocsPage } from '@/pages/DocsPage'
 import { HomePage } from '@/pages/HomePage'
 import { SimulationsPage } from '@/pages/SimulationsPage'
 import { StatsPage } from '@/pages/StatsPage'
@@ -150,6 +152,17 @@ function StatsRoute() {
   )
 }
 
+function DocsRoute() {
+  const { apiBaseUrl, apiKey } = useOutletConnection()
+
+  return (
+    <DocsPage
+      apiBaseUrl={apiBaseUrl}
+      apiKey={apiKey}
+    />
+  )
+}
+
 function CommandConsoleRoute() {
   const { apiBaseUrl, apiKey, anonToken } = useOutletConnection()
 
@@ -168,16 +181,41 @@ function useOutletConnection() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/sk" replace />} />
-      <Route path="/:lang" element={<CasConsoleShell />}>
-        <Route index element={<HomePage />} />
-        <Route path="simulations" element={<SimulationsRoute />} />
-        <Route path="console" element={<CommandConsoleRoute />} />
-        <Route path="stats" element={<StatsRoute />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/sk" replace />} />
-    </Routes>
+    <>
+      <Toaster
+        position="top-center"
+        expand={false}
+        visibleToasts={3}
+        toastOptions={{
+          style: {
+            background: 'rgba(29, 29, 31, 0.88)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            color: '#f5f5f7',
+            borderRadius: '14px',
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.28)',
+          },
+          classNames: {
+            error: 'border-[#ff453a]/40',
+            success: 'border-[#30d158]/30',
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<Navigate to="/sk" replace />} />
+        <Route path="/:lang" element={<CasConsoleShell />}>
+          <Route index element={<HomePage />} />
+          <Route path="simulations" element={<SimulationsRoute />} />
+          <Route path="console" element={<CommandConsoleRoute />} />
+          <Route path="stats" element={<StatsRoute />} />
+          <Route path="docs" element={<DocsRoute />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/sk" replace />} />
+      </Routes>
+    </>
   )
 }
 
