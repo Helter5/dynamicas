@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -185,11 +184,6 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 </Button>
               </div>
             </div>
-            {inverted.error ? (
-              <Alert variant="destructive">
-                <AlertDescription>{inverted.error}</AlertDescription>
-              </Alert>
-            ) : null}
             {inverted.data.length > 0 ? (
               <SimulationPanel
                 kind="inverted-pendulum"
@@ -226,11 +220,6 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
                 </Button>
               </div>
             </div>
-            {ball.error ? (
-              <Alert variant="destructive">
-                <AlertDescription>{ball.error}</AlertDescription>
-              </Alert>
-            ) : null}
             {ball.data.length > 0 ? (
               <SimulationPanel
                 kind="ball-and-beam"

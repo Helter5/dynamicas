@@ -6,25 +6,21 @@ type Props = {
   t: (key: string) => string
   apiBaseUrl: string
   apiKey: string
-  anonToken: string
   variant?: 'card' | 'plain'
   onApiBaseUrlChange: (value: string) => void
   onApiKeyChange: (value: string) => void
-  onAnonTokenChange: (value: string) => void
 }
 
 export function ConnectionCard({
   t,
   apiBaseUrl,
   apiKey,
-  anonToken,
   variant = 'card',
   onApiBaseUrlChange,
   onApiKeyChange,
-  onAnonTokenChange,
 }: Props) {
   const fields = (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
       <div className="grid gap-2 md:col-span-2">
         <Label htmlFor="base-url">{t('apiBaseUrl')}</Label>
         <Input
@@ -41,15 +37,6 @@ export function ConnectionCard({
           value={apiKey}
           onChange={(event) => onApiKeyChange(event.target.value)}
           placeholder="local-smoke-key"
-        />
-      </div>
-      <div className="grid gap-2 md:col-span-3">
-        <Label htmlFor="anon-token">{t('anonToken')}</Label>
-        <Input
-          id="anon-token"
-          value={anonToken}
-          onChange={(event) => onAnonTokenChange(event.target.value)}
-          placeholder="generated-browser-token"
         />
       </div>
     </div>

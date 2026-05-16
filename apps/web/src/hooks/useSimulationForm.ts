@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { readJsonResponse } from '@/lib/api'
 import type { SimulationDataPoint } from '@/components/simulations/SimulationResults'
 
@@ -77,7 +78,9 @@ export function useSimulationForm({
       setData(result.series)
       setDt(result.config.dt)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('simulationRequestFailed'))
+      const message = err instanceof Error ? err.message : t('simulationRequestFailed')
+      setError(message)
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }

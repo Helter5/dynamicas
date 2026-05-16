@@ -19,10 +19,8 @@ type Props = {
   lang: Language
   apiBaseUrl: string
   apiKey: string
-  anonToken: string
   onApiBaseUrlChange: (value: string) => void
   onApiKeyChange: (value: string) => void
-  onAnonTokenChange: (value: string) => void
   onLanguageChange: (language: Language) => void
 }
 
@@ -31,10 +29,8 @@ export function Navbar({
   lang,
   apiBaseUrl,
   apiKey,
-  anonToken,
   onApiBaseUrlChange,
   onApiKeyChange,
-  onAnonTokenChange,
   onLanguageChange,
 }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -93,11 +89,9 @@ export function Navbar({
                 t={t}
                 apiBaseUrl={apiBaseUrl}
                 apiKey={apiKey}
-                anonToken={anonToken}
                 variant="plain"
                 onApiBaseUrlChange={onApiBaseUrlChange}
                 onApiKeyChange={onApiKeyChange}
-                onAnonTokenChange={onAnonTokenChange}
               />
             </DialogContent>
           </Dialog>

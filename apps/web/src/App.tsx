@@ -99,12 +99,7 @@ function CasConsoleShell() {
     import.meta.env.VITE_API_BASE_URL ?? '',
   )
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_API_KEY ?? '')
-  const [anonToken, setAnonTokenState] = useState(getStoredAnonToken)
-
-  function setAnonToken(anonToken: string) {
-    localStorage.setItem(ANON_TOKEN_STORAGE_KEY, anonToken)
-    setAnonTokenState(anonToken)
-  }
+  const [anonToken] = useState(getStoredAnonToken)
 
   return (
     <>
@@ -113,10 +108,8 @@ function CasConsoleShell() {
         lang={lang}
         apiBaseUrl={apiBaseUrl}
         apiKey={apiKey}
-        anonToken={anonToken}
         onApiBaseUrlChange={setApiBaseUrl}
         onApiKeyChange={setApiKey}
-        onAnonTokenChange={setAnonToken}
         onLanguageChange={switchLanguage}
       />
       <main className="min-h-full px-4 pb-10 pt-8 md:px-8 md:pb-16">

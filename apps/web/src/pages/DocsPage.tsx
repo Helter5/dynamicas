@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Download, ExternalLink, Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { readJsonResponse } from '@/lib/api'
 
 type Props = {
   apiBaseUrl: string
@@ -144,6 +147,7 @@ function SchemaTable({
 }
 
 export function DocsPage({ apiBaseUrl, apiKey }: Props) {
+  const { t } = useTranslation()
   const [spec, setSpec] = useState<OpenApiSpec | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -151,10 +155,18 @@ export function DocsPage({ apiBaseUrl, apiKey }: Props) {
     fetch(`${apiBaseUrl}/api/docs/openapi.json`, {
       headers: { 'X-API-KEY': apiKey },
     })
-      .then((r) => r.json())
-      .then(setSpec)
-      .catch(() => setError('Failed to load API specification.'))
-  }, [apiBaseUrl, apiKey])
+      .then(async (r) => {
+        const data = await readJsonResponse(r) as (OpenApiSpec & { message?: string }) | null
+        if (!r.ok) throw new Error(data?.message ?? t('requestFailed'))
+        if (!data) throw new Error(t('cannotConnect'))
+        setSpec(data)
+      })
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : t('cannotConnect')
+        setError(message)
+        toast.error(message)
+      })
+  }, [apiBaseUrl, apiKey, t])
 
   const pdfUrl = `${apiBaseUrl}/api/docs/pdf`
 
@@ -194,12 +206,6 @@ export function DocsPage({ apiBaseUrl, apiKey }: Props) {
           </a>
         </div>
       </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
 
       {!spec && !error && (
         <div className="text-sm text-neutral-400">Loading specification…</div>

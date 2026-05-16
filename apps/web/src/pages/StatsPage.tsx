@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Download, LoaderCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { readJsonResponse } from '@/lib/api'
 
 type SummaryItem = {
   simulation: string
@@ -38,37 +39,46 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
   const [details, setDetails] = useState<Record<string, DetailItem[]>>({})
   const [selectedSimulation, setSelectedSimulation] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const apiRoot = useMemo(() => apiBaseUrl.replace(/\/$/, ''), [apiBaseUrl])
 
   useEffect(() => {
     setIsLoading(true)
-    setError(null)
 
     fetch(`${apiRoot}/api/stats/simulations`, { headers: { 'X-API-KEY': apiKey } })
-      .then((r) => r.json().then((data) => {
+      .then(async (r) => {
+        const data = await readJsonResponse(r) as { message?: string; items?: SummaryItem[] } | null
         if (!r.ok) throw new Error(data?.message ?? t('requestFailed'))
-        setSummary(data.items ?? [])
-      }))
-      .catch(() => setError(t('cannotConnect')))
+        setSummary(data?.items ?? [])
+      })
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : t('cannotConnect'))
+      })
       .finally(() => setIsLoading(false))
   }, [apiRoot, apiKey, t])
 
   async function downloadCsv() {
-    const response = await fetch(`${apiRoot}/api/logs/export.csv`, {
-      headers: { 'X-API-KEY': apiKey },
-    })
+    try {
+      const response = await fetch(`${apiRoot}/api/logs/export.csv`, {
+        headers: { 'X-API-KEY': apiKey },
+      })
 
-    if (!response.ok) return
+      if (!response.ok) {
+        const data = await readJsonResponse(response) as { message?: string } | null
+        toast.error(data?.message ?? t('requestFailed'))
+        return
+      }
 
-    const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `api-logs-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `api-logs-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error(t('cannotConnect'))
+    }
   }
 
 
@@ -91,7 +101,7 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
           'X-API-KEY': apiKey,
         },
       })
-      const data = await response.json()
+      const data = await readJsonResponse(response) as { message?: string; items?: DetailItem[] } | null
 
       if (!response.ok) {
         throw new Error(data?.message ?? t('requestFailed'))
@@ -99,10 +109,10 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
 
       setDetails((current) => ({
         ...current,
-        [simulation]: data.items ?? [],
+        [simulation]: data?.items ?? [],
       }))
-    } catch {
-      setError(t('cannotConnect'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('cannotConnect'))
     }
   }
 
@@ -125,12 +135,6 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        {error ? (
-          <Alert variant="destructive" className="border-[#ff453a]/30 bg-[#ff453a]/10 text-white">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-
         {isLoading ? (
           <div className="flex items-center gap-2 rounded-[20px] bg-white/[0.06] p-5 text-white/72">
             <LoaderCircle className="size-4 animate-spin" />
