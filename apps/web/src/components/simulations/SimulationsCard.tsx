@@ -94,13 +94,11 @@ function NumberField({
   id,
   label,
   value,
-  step = 0.01,
   onChange,
 }: {
   id: string
   label: string
   value: string
-  step?: number
   onChange: (value: string) => void
 }) {
   return (
@@ -108,8 +106,9 @@ function NumberField({
       <Label htmlFor={id} className="text-xs font-semibold tracking-[-0.01em] text-muted-foreground">{label}</Label>
       <Input
         id={id}
-        type="number"
-        step={step}
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -164,7 +163,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <NumberField id="ip-duration" label="Duration (s)" value={inverted.form.duration} onChange={(v) => inverted.setForm({ ...inverted.form, duration: v })} />
-                <NumberField id="ip-dt" label="dt (s)" value={inverted.form.dt} step={0.001} onChange={(v) => inverted.setForm({ ...inverted.form, dt: v })} />
+                <NumberField id="ip-dt" label="dt (s)" value={inverted.form.dt} onChange={(v) => inverted.setForm({ ...inverted.form, dt: v })} />
                 <NumberField id="ip-reference" label="Reference x (m)" value={inverted.form.reference} onChange={(v) => inverted.setForm({ ...inverted.form, reference: v })} />
                 <NumberField id="ip-initial-x" label="Initial x (m)" value={inverted.form.initial_x} onChange={(v) => inverted.setForm({ ...inverted.form, initial_x: v })} />
                 <NumberField id="ip-initial-v" label="Initial v (m/s)" value={inverted.form.initial_v} onChange={(v) => inverted.setForm({ ...inverted.form, initial_v: v })} />
@@ -200,7 +199,7 @@ export function SimulationsCard({ apiBaseUrl, apiKey, anonToken }: SimulationsCa
             <div className="grid gap-4 rounded-[24px] bg-white p-4 text-foreground md:p-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <NumberField id="bb-duration" label="Duration (s)" value={ball.form.duration} onChange={(v) => ball.setForm({ ...ball.form, duration: v })} />
-                <NumberField id="bb-dt" label="dt (s)" value={ball.form.dt} step={0.001} onChange={(v) => ball.setForm({ ...ball.form, dt: v })} />
+                <NumberField id="bb-dt" label="dt (s)" value={ball.form.dt} onChange={(v) => ball.setForm({ ...ball.form, dt: v })} />
                 <NumberField id="bb-reference" label="Reference r (m)" value={ball.form.reference} onChange={(v) => ball.setForm({ ...ball.form, reference: v })} />
                 <NumberField id="bb-initial-r" label="Initial r (m)" value={ball.form.initial_r} onChange={(v) => ball.setForm({ ...ball.form, initial_r: v })} />
                 <NumberField id="bb-initial-r-dot" label="Initial r_dot (m/s)" value={ball.form.initial_r_dot} onChange={(v) => ball.setForm({ ...ball.form, initial_r_dot: v })} />

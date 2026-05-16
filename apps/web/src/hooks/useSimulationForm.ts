@@ -42,7 +42,7 @@ function createFormState(defaults: NumericForm): FormState {
 
 function toNumericPayload(form: FormState): NumericForm | null {
   const entries = Object.entries(form).map(([key, value]) => {
-    const trimmed = value.trim()
+    const trimmed = value.trim().replace(',', '.')
 
     if (trimmed === '') {
       return null
@@ -57,6 +57,21 @@ function toNumericPayload(form: FormState): NumericForm | null {
   }
 
   return Object.fromEntries(entries as [string, number][])
+}
+
+function isSimulationResponse(value: unknown): value is SimulationResponse {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<SimulationResponse>
+
+  return (
+    Array.isArray(candidate.series) &&
+    !!candidate.config &&
+    typeof candidate.config === 'object' &&
+    typeof candidate.config.dt === 'number'
+  )
 }
 
 export function useSimulationForm({
@@ -84,31 +99,37 @@ export function useSimulationForm({
         throw new Error(t('invalidNumberFields'))
       }
 
-      const response = await fetch(`${apiRoot}/api/simulations/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': apiKey,
-          'X-ANON-TOKEN': anonToken,
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      })
+      const requestUrl = `${apiRoot}/api/simulations/${endpoint}`
+      let response: Response
+
+      try {
+        response = await fetch(requestUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': apiKey,
+            'X-ANON-TOKEN': anonToken,
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+      } catch {
+        throw new Error(t('cannotConnect'))
+      }
 
       const json = await readJsonResponse(response)
 
       if (!response.ok) {
         const errorData = json as ApiErrorResponse | null
-        throw new Error(errorData?.message ?? t('simulationRequestFailed'))
+        throw new Error(errorData?.message ?? `${t('simulationRequestFailed')} (${response.status})`)
       }
 
-      if (!json) {
-        throw new Error(t('cannotConnect'))
+      if (!isSimulationResponse(json)) {
+        throw new Error(t('invalidSimulationResponse'))
       }
 
-      const result = json as SimulationResponse
-      setData(result.series)
-      setDt(result.config.dt)
+      setData(json.series)
+      setDt(json.config.dt)
     } catch (err) {
       const message = err instanceof Error ? err.message : t('simulationRequestFailed')
       setError(message)
