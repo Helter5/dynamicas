@@ -27,7 +27,7 @@ export function ConnectionCard({
           id="base-url"
           value={apiBaseUrl}
           onChange={(event) => onApiBaseUrlChange(event.target.value)}
-          placeholder="http://127.0.0.1:8000"
+          placeholder="https://node56.webte.fei.stuba.sk"
         />
       </div>
       <div className="grid gap-2">
