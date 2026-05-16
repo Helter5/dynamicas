@@ -164,15 +164,13 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
                       <tr>
                         <th className="py-2 pr-3 font-medium">{t('statsTime')}</th>
                         <th className="py-2 pr-3 font-medium">{t('statsLocation')}</th>
-                        <th className="py-2 pr-3 font-medium">{t('statsToken')}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(details[item.simulation] ?? []).map((detail) => (
-                        <tr key={`${detail.anon_token}-${detail.used_at}`} className="border-t border-black/10">
+                      {(details[item.simulation] ?? []).map((detail, i) => (
+                        <tr key={`${i}-${detail.used_at}`} className="border-t border-black/10">
                           <td className="py-2 pr-3">{new Date(detail.used_at).toLocaleString()}</td>
                           <td className="py-2 pr-3">{[detail.city, detail.country].filter(Boolean).join(', ') || t('unknownLocation')}</td>
-                          <td className="py-2 pr-3 font-mono text-xs" title={detail.anon_token}>{detail.anon_token.slice(0, 8)}…</td>
                         </tr>
                       ))}
                     </tbody>
