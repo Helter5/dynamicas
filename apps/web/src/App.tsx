@@ -29,6 +29,7 @@ type OutletConnection = {
 
 const SUPPORTED_LANGUAGES: Language[] = ['sk', 'en']
 const ANON_TOKEN_STORAGE_KEY = 'dynamicas_anon_token'
+const DEFAULT_API_BASE_URL = 'https://node56.webte.fei.stuba.sk'
 
 function createAnonToken() {
   if (crypto.randomUUID) {
@@ -96,7 +97,7 @@ function useLanguageRoute() {
 function CasConsoleShell() {
   const { t, lang, switchLanguage } = useLanguageRoute()
   const [apiBaseUrl, setApiBaseUrl] = useState(
-    import.meta.env.VITE_API_BASE_URL ?? '',
+    import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL,
   )
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_API_KEY ?? '')
   const [anonToken] = useState(getStoredAnonToken)
