@@ -23,7 +23,7 @@ services:
     depends_on:
       - api
     environment:
-      VITE_API_BASE_URL: ""
+      VITE_API_BASE_URL: /ferrari_wdc/final/dynamicas
       VITE_API_PROXY_TARGET: http://api:8000
       VITE_API_KEY: local-smoke-key
       CHOKIDAR_USEPOLLING: "true"
