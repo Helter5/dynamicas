@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Download, ExternalLink, Lock, Minus } from 'lucide-react'
+import { Download, ExternalLink, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type Props = {

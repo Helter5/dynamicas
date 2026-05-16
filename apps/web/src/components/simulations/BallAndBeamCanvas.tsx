@@ -156,6 +156,7 @@ export function BallAndBeamCanvas({
       nextScene.engine.dispose()
       sceneRef.current = null
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beamLength])
 
   useEffect(() => {

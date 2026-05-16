@@ -43,8 +43,17 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
   const apiRoot = useMemo(() => apiBaseUrl.replace(/\/$/, ''), [apiBaseUrl])
 
   useEffect(() => {
-    void loadSummary()
-  }, [apiRoot, apiKey])
+    setIsLoading(true)
+    setError(null)
+
+    fetch(`${apiRoot}/api/stats/simulations`, { headers: { 'X-API-KEY': apiKey } })
+      .then((r) => r.json().then((data) => {
+        if (!r.ok) throw new Error(data?.message ?? t('requestFailed'))
+        setSummary(data.items ?? [])
+      }))
+      .catch(() => setError(t('cannotConnect')))
+      .finally(() => setIsLoading(false))
+  }, [apiRoot, apiKey, t])
 
   async function downloadCsv() {
     const response = await fetch(`${apiRoot}/api/logs/export.csv`, {
@@ -62,29 +71,7 @@ export function StatsPage({ apiBaseUrl, apiKey }: Props) {
     URL.revokeObjectURL(url)
   }
 
-  async function loadSummary() {
-    setIsLoading(true)
-    setError(null)
 
-    try {
-      const response = await fetch(`${apiRoot}/api/stats/simulations`, {
-        headers: {
-          'X-API-KEY': apiKey,
-        },
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data?.message ?? t('requestFailed'))
-      }
-
-      setSummary(data.items ?? [])
-    } catch {
-      setError(t('cannotConnect'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   async function toggleDetails(simulation: string) {
     if (selectedSimulation === simulation) {
