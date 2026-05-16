@@ -5,6 +5,7 @@ import { readJsonResponse } from '@/lib/api'
 import type { SimulationDataPoint } from '@/components/simulations/SimulationResults'
 
 type NumericForm = Record<string, number>
+type FormState = Record<string, string>
 
 type SimulationResponse = {
   config: { dt: number }
@@ -24,13 +25,38 @@ type Params = {
 }
 
 type Result = {
-  form: NumericForm
-  setForm: (form: NumericForm) => void
+  form: FormState
+  setForm: (form: FormState) => void
   data: SimulationDataPoint[]
   dt: number
   isLoading: boolean
   error: string | null
   run: () => Promise<void>
+}
+
+function createFormState(defaults: NumericForm): FormState {
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, value]) => [key, String(value)]),
+  )
+}
+
+function toNumericPayload(form: FormState): NumericForm | null {
+  const entries = Object.entries(form).map(([key, value]) => {
+    const trimmed = value.trim()
+
+    if (trimmed === '') {
+      return null
+    }
+
+    const numericValue = Number(trimmed)
+    return Number.isFinite(numericValue) ? [key, numericValue] : null
+  })
+
+  if (entries.some((entry) => entry == null)) {
+    return null
+  }
+
+  return Object.fromEntries(entries as [string, number][])
 }
 
 export function useSimulationForm({
@@ -41,7 +67,7 @@ export function useSimulationForm({
   anonToken,
 }: Params): Result {
   const { t } = useTranslation()
-  const [form, setForm] = useState<NumericForm>(defaults)
+  const [form, setForm] = useState<FormState>(() => createFormState(defaults))
   const [data, setData] = useState<SimulationDataPoint[]>([])
   const [dt, setDt] = useState(defaults.dt)
   const [isLoading, setIsLoading] = useState(false)
@@ -52,6 +78,12 @@ export function useSimulationForm({
     setError(null)
 
     try {
+      const payload = toNumericPayload(form)
+
+      if (!payload) {
+        throw new Error(t('invalidNumberFields'))
+      }
+
       const response = await fetch(`${apiRoot}/api/simulations/${endpoint}`, {
         method: 'POST',
         headers: {
@@ -60,7 +92,7 @@ export function useSimulationForm({
           'X-ANON-TOKEN': anonToken,
         },
         credentials: 'include',
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
 
       const json = await readJsonResponse(response)

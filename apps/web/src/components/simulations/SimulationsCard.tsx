@@ -99,9 +99,9 @@ function NumberField({
 }: {
   id: string
   label: string
-  value: number
+  value: string
   step?: number
-  onChange: (value: number) => void
+  onChange: (value: string) => void
 }) {
   return (
     <div className="grid gap-1.5">
@@ -111,7 +111,7 @@ function NumberField({
         type="number"
         step={step}
         value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(event) => onChange(event.target.value)}
       />
     </div>
   )
